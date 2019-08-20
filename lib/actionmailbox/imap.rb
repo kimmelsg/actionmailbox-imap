@@ -13,10 +13,8 @@ module ActionMailbox
       end
 
       def select_mailbox(mailbox)
-        adapter.select_mailbox(mailbox).tap do |result|
-          return false unless result # @TODO use Result object instead of false
-          return Mailbox.new(adapter: adapter, mailbox: mailbox)
-        end
+        adapter.select_mailbox(mailbox)
+        Mailbox.new(adapter: adapter, mailbox: mailbox)
       end
 
       def disconnect
