@@ -9,6 +9,18 @@ If the rake task successfully relays a message to ActionMailbox then it will fla
 
 If the rake task fails to relay a message to ActionMailbox then it will ignore it and move on to the next message leaving the message on the IMAP server.
 
+### Why it was created
+
+It seems that there is no plans to create some sort of IMAP implementation relay in ActionMailbox. 
+https://github.com/rails/actionmailbox/issues/14
+
+There is probably a reason for this. We did not want to setup or maintain a mailserver which would probably be the route to go for a robust inboud email application.
+
+
+### Want to contribute?
+
+Please do.
+
 ## Usage
 
 ### Install ActionMailbox
