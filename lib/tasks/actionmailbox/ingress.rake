@@ -10,21 +10,27 @@ namespace :action_mailbox do
 
     desc "Relays inbound IMAP email to Action Mailbox (URL and INGRESS_PASSWORD required)"
     task imap: "action_mailbox:ingress:environment" do
+      url, password = ENV.values_at("URL", "INGRESS_PASSWORD")
+
+      config = Rails.application.config_for(:actionmailbox_imap)
+
       adapter = ActionMailbox::IMAP::Adapters::NetImap.new(
-        server: "***REMOVED***",
-        port: 993,
-        usessl: true
+        server: config[:server],
+        port: config[:port],
+        usessl: config[:usessl]
       )
 
       imap = ActionMailbox::IMAP::Base.new(adapter: adapter)
 
-      imap.login(username: "walter2@kimmel.com", password: "***REMOVED***")
+      imap.login(username: config[:username], password: config[:password])
 
-      mailbox = imap.select_mailbox("INBOX")
+      mailbox = imap.select_mailbox(config[:ingress_mailbox])
 
-      mailbox.not_deleted.take(1).each do |message|
-        pp message.rfc822
+      mailbox.not_deleted.take(10).each do |message|
+        ActionMailbox::Relayer.new(url: url, password: password).relay(message.rfc822)
       end
+
+      imap.disconnect
     end
   end
 end

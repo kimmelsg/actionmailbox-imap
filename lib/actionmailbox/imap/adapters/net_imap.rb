@@ -10,30 +10,19 @@ module ActionMailbox
 
         def login(username:, password:)
           imap.login(username, password)
-          true
-        rescue
-          false
         end
 
         def select_mailbox(mailbox)
           imap.select(mailbox)
-          true
-        rescue
-          false
         end
 
         def disconnect
           # @TODO imap.expunge for deleted messages?
           imap.disconnect
-          true
-        rescue
-          false
         end
 
         def messages_not_deleted
           imap.search(["NOT", "DELETED"])
-        rescue
-          false
         end
 
         def delete_message(id)
@@ -43,16 +32,11 @@ module ActionMailbox
         def move_message_to(id, mailbox)
           imap.copy(id, mailbox)
           imap.store(id, "+FLAGS", ["DELETED"])
-          true
-        rescue
-          false
         end
 
         # @TODO test method
         def fetch_message_attr(id, attr)
           imap.fetch(id, attr).first.attr[attr]
-        rescue
-          false
         end
 
         private
