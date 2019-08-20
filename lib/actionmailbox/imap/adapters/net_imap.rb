@@ -34,7 +34,6 @@ module ActionMailbox
           imap.store(id, "+FLAGS", ["DELETED"])
         end
 
-        # @TODO test method
         def fetch_message_attr(id, attr)
           imap.fetch(id, attr).first.attr[attr]
         end

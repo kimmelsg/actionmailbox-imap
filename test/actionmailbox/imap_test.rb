@@ -34,17 +34,6 @@ class ActionMailbox::IMAP::Base::Test < ActiveSupport::TestCase
     mock.verify
   end
 
-  test ".select_mailbox returns false when adapter returns false" do
-    mock = Minitest::Mock.new
-    mock.expect :select_mailbox, false, ["INBOX"]
-
-    imap = ActionMailbox::IMAP::Base.new(adapter: mock)
-    mailbox = imap.select_mailbox("INBOX")
-
-    assert !mailbox
-    mock.verify
-  end
-
   test "it will call adapter disconnect" do
     mock = Minitest::Mock.new
     mock.expect :disconnect, nil

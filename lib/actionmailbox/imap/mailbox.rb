@@ -9,10 +9,8 @@ module ActionMailbox
       end
 
       def not_deleted
-        adapter.messages_not_deleted.tap do |result|
-          return false unless result # @TODO use Result object instead of false
-          return Messages.new(adapter: adapter, message_ids: result)
-        end
+        result = adapter.messages_not_deleted
+        Messages.new(adapter: adapter, message_ids: result)
       end
 
       private

@@ -14,15 +14,4 @@ class ActionMailbox::IMAP::Mailbox::Test < ActiveSupport::TestCase
     assert_instance_of(ActionMailbox::IMAP::Messages, result)
     fake_adapter.verify
   end
-
-  test ".not_deleted returns false if adapter returns false" do
-    fake_adapter = MiniTest::Mock.new
-    fake_adapter.expect :messages_not_deleted, false
-
-    mailbox = ActionMailbox::IMAP::Mailbox.new(adapter: fake_adapter, mailbox: "INBOX")
-    result = mailbox.not_deleted
-
-    assert !result
-    fake_adapter.verify
-  end
 end

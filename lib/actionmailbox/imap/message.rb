@@ -8,26 +8,16 @@ module ActionMailbox
         @id = id
       end
 
-      def get_id
-        id
-      end
-
       def rfc822
-        adapter.fetch_message_attr(id, RFC822).tap do |result|
-          return false unless result # @TODO use Result object instead of false
-        end
+        adapter.fetch_message_attr(id, RFC822)
       end
 
       def delete
-        adapter.delete_message(id).tap do |result|
-          return false unless result # @TODO use Result object instead of false
-        end
+        adapter.delete_message(id)
       end
 
       def move_to(mailbox)
-        adapter.move_message_to(id, mailbox).tap do |result|
-          return false unless result # @TODO use Result object instead of false
-        end
+        adapter.move_message_to(id, mailbox)
       end
 
       private
