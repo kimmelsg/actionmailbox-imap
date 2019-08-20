@@ -58,7 +58,7 @@ jobs:
       # Set bundle path to point to cache
       - run: bundle config --local path vendor/bundle
 
-      - run: rake standard STANDARDOPTS="--format progress"
+      - run: bundle exec standardrb STANDARDOPTS="--format progress"
 
 workflows:
   version: 2
