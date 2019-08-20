@@ -28,4 +28,5 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency "sqlite3"
   spec.add_development_dependency "minitest-stub-const"
+  spec.add_development_dependency "standard"
 end
