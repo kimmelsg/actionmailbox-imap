@@ -16,11 +16,6 @@ https://github.com/rails/actionmailbox/issues/14
 
 There is probably a reason for this. We did not want to setup or maintain a mailserver which would probably be the route to go for a robust inboud email application.
 
-
-### Want to contribute?
-
-Please do.
-
 ## Usage
 
 ### Install ActionMailbox
@@ -61,6 +56,7 @@ Run or schedule `rails action_mailbox:ingress:imap` to run at a selected interva
 
 ## Installation
 Add this line to your application's Gemfile:
+( Gem is not published to rubygems.org currently, you can point to this github url though )
 
 ```ruby
 gem 'actionmailbox-imap'
@@ -77,7 +73,8 @@ $ gem install actionmailbox-imap
 ```
 
 ## Contributing
-Contribution directions go here.
+
+Want to contribute? Please do. PR's and passing tests (lint, test) will be required.
 
 ## License
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
