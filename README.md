@@ -50,7 +50,7 @@ $ rails g imap:install
 
 Prepare your IMAP server and account by ensuring/creating the mailboxes for `ingress_mailbox`, ex: "INBOX".
 
-Update the `config/imap.yml` that was generated to include server and credentials information and a `ingress_mailbox`.
+Update the `config/imap.yml` that was generated to include server and credentials information, `ingress_mailbox` and an appropriate `take` amount ( the amount of emails to grab in a single run ).
 
 Run or schedule `rails action_mailbox:ingress:imap URL="http://localhost/rails/action_mailbox/inbound_email" INGRESS_PASSWORD="YourIngressPassword"` to run at a selected interval. 
 
