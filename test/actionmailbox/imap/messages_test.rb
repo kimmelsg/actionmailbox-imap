@@ -29,4 +29,18 @@ class ActionMailbox::IMAP::Messages::Test < ActiveSupport::TestCase
 
     assert result == 4
   end
+
+  test ".each iterates over each ID yeilding a message" do
+    fake_adapter = MiniTest::Mock.new
+
+    messages = ActionMailbox::IMAP::Messages.new(adapter: fake_adapter, message_ids: [1, 2, 3, 4])
+
+    count = 0
+    messages.each do |message|
+      assert_instance_of(ActionMailbox::IMAP::Message, message)
+      count += 1
+    end
+
+    assert count == 4
+  end
 end

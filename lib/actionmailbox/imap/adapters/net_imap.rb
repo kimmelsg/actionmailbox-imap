@@ -4,14 +4,12 @@ module ActionMailbox
   module IMAP
     module Adapters
       class NetImap
-        LOGIN = "LOGIN".freeze
-
         def initialize(server:, port: 993, usessl: true)
           @imap = Net::IMAP.new(server, port, usessl)
         end
 
-        def authenticate(username:, password:)
-          imap.authenticate(LOGIN, username, password)
+        def login(username:, password:)
+          imap.login(username, password)
           true
         rescue
           false
