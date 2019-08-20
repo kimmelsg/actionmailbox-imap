@@ -5,7 +5,7 @@ default: &default
   username: <%= ENV.fetch("IMAP_ACCOUNT_USERNAME") { "" } %>
   password: <%= ENV.fetch("IMAP_ACCOUNT_PASSWORD") { "" } %>
   ingress_mailbox: "INBOX"
-  retry_mailbox: "RETRY"
+  take: <%= ENV.fetch("IMAP_TAKE") { 100 } %>
 
 development:
   <<: *default

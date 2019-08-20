@@ -26,8 +26,11 @@ namespace :action_mailbox do
 
       mailbox = imap.select_mailbox(config[:ingress_mailbox])
 
-      mailbox.not_deleted.take(10).each do |message|
-        ActionMailbox::Relayer.new(url: url, password: password).relay(message.rfc822)
+      mailbox.not_deleted.take(config[:take]).each do |message|
+        ActionMailbox::Relayer.new(url: url, password: password).relay(message.rfc822).tap do |result|
+          message.delete if result.success?
+          message.move_to(config[:retry_mailbox]) unless result.success?
+        end
       end
 
       imap.disconnect

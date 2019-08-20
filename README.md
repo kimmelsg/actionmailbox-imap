@@ -1,8 +1,46 @@
-# Actionmailbox::Imap
-Short description and motivation.
+# Actionmailbox::IMAP
+
+A IMAP relay for ActionMailbox.
+
+This is a very simple gem that provides a rake task which will connect to an IMAP server, grab some (`take`) emails, attempt to relay them to ActionMailbox.
+
+If the rake task successfully relays a message to ActionMailbox then it will flag the message as "Deleted" on the IMAP server, and continue to the next message.
+
+If the rake task fails to relay a message to ActionMailbox then it will ignore it and move on to the next message leaving the message on the IMAP server.
 
 ## Usage
-How to use my plugin.
+
+### Install ActionMailbox per [ActionMailbox documentation](https://edgeguides.rubyonrails.org/action_mailbox_basics.html)...
+
+```bash
+rails action_mailbox:install
+rails db:migrate
+```
+
+```ruby
+# config/environments/production.rb
+config.action_mailbox.ingress = :relay
+```
+
+`rails credentials:edit`
+
+```yaml
+action_mailbox:
+    ingress_password: "YourIngressPassword"
+```
+
+
+### Install ActionMailbox::IMAP
+
+```bash
+rails g imap:install
+```
+
+Prepare your IMAP server and account by ensuring/creating the mailboxes for `ingress_mailbox`, ex: "INBOX".
+
+Update the `config/imap.yml` that was generated to include server and credentials information and a `ingress_mailbox`.
+
+Run or schedule `rails action_mailbox:ingress:imap` to run at a selected interval.
 
 ## Installation
 Add this line to your application's Gemfile:

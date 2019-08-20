@@ -59,6 +59,7 @@ class ActionMailbox::IMAP::Adapters::NetImap::Test < ActiveSupport::TestCase
   test ".disconnect calls disconnect on Net::IMAP successfully" do
     net_imap = MiniTest::Mock.new
     net_imap.expect :new, net_imap, ["some.server.com", 993, true]
+    net_imap.expect :expunge, nil
     net_imap.expect :disconnect, nil
 
     Net.stub_const :IMAP, net_imap do
@@ -96,7 +97,7 @@ class ActionMailbox::IMAP::Adapters::NetImap::Test < ActiveSupport::TestCase
     net_imap = MiniTest::Mock.new
     net_imap.expect :new, net_imap, ["some.server.com", 993, true]
     net_imap.expect :copy, nil, [1, "TRASH"]
-    net_imap.expect :store, nil, [1, "+FLAGS", ["DELETED"]]
+    net_imap.expect :store, nil, [1, "+FLAGS", [:Deleted]]
 
     Net.stub_const :IMAP, net_imap do
       fake_adapter = ActionMailbox::IMAP::Adapters::NetImap.new(
@@ -115,7 +116,7 @@ class ActionMailbox::IMAP::Adapters::NetImap::Test < ActiveSupport::TestCase
     net_imap = MiniTest::Mock.new
     net_imap.expect :new, net_imap, ["some.server.com", 993, true]
     net_imap.expect :copy, nil, [1, "Saved"]
-    net_imap.expect :store, nil, [1, "+FLAGS", ["DELETED"]]
+    net_imap.expect :store, nil, [1, "+FLAGS", [:Deleted]]
 
     Net.stub_const :IMAP, net_imap do
       fake_adapter = ActionMailbox::IMAP::Adapters::NetImap.new(
