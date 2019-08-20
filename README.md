@@ -10,11 +10,13 @@ If the rake task fails to relay a message to ActionMailbox then it will ignore i
 
 ## Usage
 
-### Install ActionMailbox per [ActionMailbox documentation](https://edgeguides.rubyonrails.org/action_mailbox_basics.html)...
+### Install ActionMailbox
+
+Per [ActionMailbox documentation](https://edgeguides.rubyonrails.org/action_mailbox_basics.html)
 
 ```bash
-rails action_mailbox:install
-rails db:migrate
+$ rails action_mailbox:install
+$ rails db:migrate
 ```
 
 ```ruby
@@ -22,7 +24,9 @@ rails db:migrate
 config.action_mailbox.ingress = :relay
 ```
 
-`rails credentials:edit`
+```bash
+$ rails credentials:edit
+```
 
 ```yaml
 action_mailbox:
@@ -33,7 +37,7 @@ action_mailbox:
 ### Install ActionMailbox::IMAP
 
 ```bash
-rails g imap:install
+$ rails g imap:install
 ```
 
 Prepare your IMAP server and account by ensuring/creating the mailboxes for `ingress_mailbox`, ex: "INBOX".
