@@ -3,13 +3,13 @@ require "actionmailbox/imap"
 require "minitest/mock"
 
 class ActionMailbox::IMAP::Base::Test < ActiveSupport::TestCase
-  test ".authenticate will call adapter authenticate" do
+  test ".login will call adapter login" do
     mock = Minitest::Mock.new
-    mock.expect :authenticate, nil, [username: "fake@email.com", password: "password"]
+    mock.expect :login, nil, [username: "fake@email.com", password: "password"]
 
     imap = ActionMailbox::IMAP::Base.new(adapter: mock)
 
-    imap.authenticate(username: "fake@email.com", password: "password")
+    imap.login(username: "fake@email.com", password: "password")
     mock.verify
   end
 

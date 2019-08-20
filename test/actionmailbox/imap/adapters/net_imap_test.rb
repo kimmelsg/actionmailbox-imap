@@ -20,10 +20,10 @@ class ActionMailbox::IMAP::Adapters::NetImap::Test < ActiveSupport::TestCase
     end
   end
 
-  test ".authenticate calls authenticate on Net::IMAP" do
+  test ".login calls login on Net::IMAP" do
     net_imap = MiniTest::Mock.new
     net_imap.expect :new, net_imap, ["some.server.com", 993, true]
-    net_imap.expect :authenticate, nil, ["LOGIN", "some@email.com", "password"]
+    net_imap.expect :login, nil, ["some@email.com", "password"]
 
     Net.stub_const :IMAP, net_imap do
       fake_adapter = ActionMailbox::IMAP::Adapters::NetImap.new(
@@ -32,16 +32,16 @@ class ActionMailbox::IMAP::Adapters::NetImap::Test < ActiveSupport::TestCase
         usessl: true
       )
 
-      fake_adapter.authenticate(username: "some@email.com", password: "password")
+      fake_adapter.login(username: "some@email.com", password: "password")
 
       net_imap.verify
     end
   end
 
-  test ".authenticate returns false when a error is thrown" do
+  test ".login returns false when a error is thrown" do
     net_imap = MiniTest::Mock.new
     net_imap.expect :new, net_imap, ["some.server.com", 993, true]
-    def net_imap.authenticate(username:, password:)
+    def net_imap.login(username:, password:)
       throw Exception
     end
 
@@ -52,7 +52,7 @@ class ActionMailbox::IMAP::Adapters::NetImap::Test < ActiveSupport::TestCase
         usessl: true
       )
 
-      assert !fake_adapter.authenticate(username: "some@email.com", password: "password")
+      assert !fake_adapter.login(username: "some@email.com", password: "password")
 
       net_imap.verify
     end

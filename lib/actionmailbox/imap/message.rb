@@ -8,6 +8,10 @@ module ActionMailbox
         @id = id
       end
 
+      def get_id
+        id
+      end
+
       def rfc822
         # @TODO create adapter method
         adapter.fetch_attr(id, RFC822).tap do |result|

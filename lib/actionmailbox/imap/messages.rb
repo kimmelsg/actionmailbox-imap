@@ -1,3 +1,5 @@
+require "actionmailbox/imap/message"
+
 module ActionMailbox
   module IMAP
     class Messages
@@ -13,6 +15,14 @@ module ActionMailbox
 
       def length
         message_ids.length
+      end
+
+      def each
+        return unless block_given? # @TODO Need to test this branch
+
+        message_ids.each do |id|
+          yield Message.new(adapter: adapter, id: id)
+        end
       end
 
       private

@@ -8,8 +8,8 @@ module ActionMailbox
         @adapter = adapter
       end
 
-      def authenticate(username:, password:)
-        adapter.authenticate(username: username, password: password)
+      def login(username:, password:)
+        adapter.login(username: username, password: password)
       end
 
       def select_mailbox(mailbox)
