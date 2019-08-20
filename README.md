@@ -1,4 +1,4 @@
-# Actionmailbox::IMAP
+# ActionMailbox::IMAP
 [![CircleCI](https://circleci.com/gh/kimmelsg/actionmailbox-imap.svg?style=svg)](https://circleci.com/gh/kimmelsg/actionmailbox-imap)
 
 A IMAP relay for ActionMailbox.
