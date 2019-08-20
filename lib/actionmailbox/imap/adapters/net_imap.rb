@@ -26,11 +26,6 @@ module ActionMailbox
         end
 
         def delete_message(id)
-          move_message_to(id, "TRASH")
-        end
-
-        def move_message_to(id, mailbox)
-          imap.copy(id, mailbox)
           imap.store(id, "+FLAGS", [:Deleted])
         end
 
