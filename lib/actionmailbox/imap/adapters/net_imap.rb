@@ -48,6 +48,13 @@ module ActionMailbox
           false
         end
 
+        # @TODO test method
+        def fetch_message_attr(id, attr)
+          imap.fetch(id, attr).first.attr[attr]
+        rescue
+          false
+        end
+
         private
 
         attr_reader :imap

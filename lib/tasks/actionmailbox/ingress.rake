@@ -22,8 +22,8 @@ namespace :action_mailbox do
 
       mailbox = imap.select_mailbox("INBOX")
 
-      mailbox.not_deleted.each do |message|
-        pp message.get_id
+      mailbox.not_deleted.take(1).each do |message|
+        pp message.rfc822
       end
     end
   end
