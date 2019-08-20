@@ -1,0 +1,6 @@
+parallel: true
+
+ignore:
+  - "test/dummy/**/*"
+  - Rakefile
+  - Gemfile
