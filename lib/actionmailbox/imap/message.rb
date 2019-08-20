@@ -13,8 +13,7 @@ module ActionMailbox
       end
 
       def rfc822
-        # @TODO create adapter method
-        adapter.fetch_attr(id, RFC822).tap do |result|
+        adapter.fetch_message_attr(id, RFC822).tap do |result|
           return false unless result # @TODO use Result object instead of false
         end
       end

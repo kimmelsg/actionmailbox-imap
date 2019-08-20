@@ -257,4 +257,49 @@ class ActionMailbox::IMAP::Adapters::NetImap::Test < ActiveSupport::TestCase
       net_imap.verify
     end
   end
+
+  test ".fetch_message_attr returns attribute successfully" do
+    net_imap = MiniTest::Mock.new
+    net_imap.expect :new, net_imap, ["some.server.com", 993, true]
+
+    imap_message = MiniTest::Mock.new
+    def imap_message.attr
+      {"RFC822" => "success"}
+    end
+
+    net_imap.expect :fetch, [imap_message], [1, "RFC822"]
+
+    Net.stub_const :IMAP, net_imap do
+      fake_adapter = ActionMailbox::IMAP::Adapters::NetImap.new(
+        server: "some.server.com",
+        port: 993,
+        usessl: true
+      )
+
+      result = fake_adapter.fetch_message_attr(1, "RFC822")
+
+      assert result == "success"
+      net_imap.verify
+    end
+  end
+
+  test ".fetch_message_attr returns false when Net::IMAP throws exception" do
+    net_imap = MiniTest::Mock.new
+    net_imap.expect :new, net_imap, ["some.server.com", 993, true]
+    def net_imap.fetch(id, attr)
+      throw Exception
+    end
+
+    Net.stub_const :IMAP, net_imap do
+      fake_adapter = ActionMailbox::IMAP::Adapters::NetImap.new(
+        server: "some.server.com",
+        port: 993,
+        usessl: true
+      )
+
+      result = fake_adapter.fetch_message_attr(1, "RFC822")
+
+      net_imap.verify
+    end
+  end
 end
