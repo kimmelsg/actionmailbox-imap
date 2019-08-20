@@ -58,7 +58,6 @@ The command behaves much like that of the other `action_mailbox:ingress:...` com
 
 ## Installation
 Add this line to your application's Gemfile:
-( Gem is not published to rubygems.org currently, you can point to this github url though )
 
 ```ruby
 gem 'actionmailbox-imap'
