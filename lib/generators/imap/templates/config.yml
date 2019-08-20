@@ -1,0 +1,14 @@
+default: &default
+  server: <%= ENV.fetch("IMAP_SERVER") { "" } %>
+  port: <%= ENV.fetch("IMAP_PORT") { 993 } %>
+  usessl: <%= ENV.fetch("IMAP_USE_SSL") { true } %>
+  username: <%= ENV.fetch("IMAP_ACCOUNT_USERNAME") { "" } %>
+  password: <%= ENV.fetch("IMAP_ACCOUNT_PASSWORD") { "" } %>
+  ingress_mailbox: "INBOX"
+  retry_mailbox: "RETRY"
+
+development:
+  <<: *default
+
+production:
+  <<: *default

@@ -38,26 +38,6 @@ class ActionMailbox::IMAP::Adapters::NetImap::Test < ActiveSupport::TestCase
     end
   end
 
-  test ".login returns false when a error is thrown" do
-    net_imap = MiniTest::Mock.new
-    net_imap.expect :new, net_imap, ["some.server.com", 993, true]
-    def net_imap.login(username:, password:)
-      throw Exception
-    end
-
-    Net.stub_const :IMAP, net_imap do
-      fake_adapter = ActionMailbox::IMAP::Adapters::NetImap.new(
-        server: "some.server.com",
-        port: 993,
-        usessl: true
-      )
-
-      assert !fake_adapter.login(username: "some@email.com", password: "password")
-
-      net_imap.verify
-    end
-  end
-
   test ".select_mailbox calls select on Net::IMAP" do
     net_imap = MiniTest::Mock.new
     net_imap.expect :new, net_imap, ["some.server.com", 993, true]
@@ -76,26 +56,6 @@ class ActionMailbox::IMAP::Adapters::NetImap::Test < ActiveSupport::TestCase
     end
   end
 
-  test ".select_mailbox returns false with Exception" do
-    net_imap = MiniTest::Mock.new
-    net_imap.expect :new, net_imap, ["some.server.com", 993, true]
-    def net_imap.select
-      throw Exception
-    end
-
-    Net.stub_const :IMAP, net_imap do
-      fake_adapter = ActionMailbox::IMAP::Adapters::NetImap.new(
-        server: "some.server.com",
-        port: 993,
-        usessl: true
-      )
-
-      assert !fake_adapter.select_mailbox("INBOX")
-
-      net_imap.verify
-    end
-  end
-
   test ".disconnect calls disconnect on Net::IMAP successfully" do
     net_imap = MiniTest::Mock.new
     net_imap.expect :new, net_imap, ["some.server.com", 993, true]
@@ -108,30 +68,8 @@ class ActionMailbox::IMAP::Adapters::NetImap::Test < ActiveSupport::TestCase
         usessl: true
       )
 
-      result = fake_adapter.disconnect
+      fake_adapter.disconnect
 
-      assert result
-      net_imap.verify
-    end
-  end
-
-  test ".disconnect calls disconnect returns false when it fails" do
-    net_imap = MiniTest::Mock.new
-    net_imap.expect :new, net_imap, ["some.server.com", 993, true]
-    def net_imap.disconnect
-      throw Exception
-    end
-
-    Net.stub_const :IMAP, net_imap do
-      fake_adapter = ActionMailbox::IMAP::Adapters::NetImap.new(
-        server: "some.server.com",
-        port: 993,
-        usessl: true
-      )
-
-      result = fake_adapter.disconnect
-
-      assert !result
       net_imap.verify
     end
   end
@@ -148,30 +86,8 @@ class ActionMailbox::IMAP::Adapters::NetImap::Test < ActiveSupport::TestCase
         usessl: true
       )
 
-      result = fake_adapter.messages_not_deleted
+      fake_adapter.messages_not_deleted
 
-      assert result
-      net_imap.verify
-    end
-  end
-
-  test ".message_not_deleted returns false when failed" do
-    net_imap = MiniTest::Mock.new
-    net_imap.expect :new, net_imap, ["some.server.com", 993, true]
-    def net_imap.search(params)
-      throw Exception
-    end
-
-    Net.stub_const :IMAP, net_imap do
-      fake_adapter = ActionMailbox::IMAP::Adapters::NetImap.new(
-        server: "some.server.com",
-        port: 993,
-        usessl: true
-      )
-
-      result = fake_adapter.messages_not_deleted
-
-      assert !result
       net_imap.verify
     end
   end
@@ -189,30 +105,8 @@ class ActionMailbox::IMAP::Adapters::NetImap::Test < ActiveSupport::TestCase
         usessl: true
       )
 
-      result = fake_adapter.delete_message(1)
+      fake_adapter.delete_message(1)
 
-      assert result
-      net_imap.verify
-    end
-  end
-
-  test ".delete_message returns false when it fails to delete a message" do
-    net_imap = MiniTest::Mock.new
-    net_imap.expect :new, net_imap, ["some.server.com", 993, true]
-    def net_imap.copy(id, mailbox)
-      throw Exception
-    end
-
-    Net.stub_const :IMAP, net_imap do
-      fake_adapter = ActionMailbox::IMAP::Adapters::NetImap.new(
-        server: "some.server.com",
-        port: 993,
-        usessl: true
-      )
-
-      result = fake_adapter.delete_message(1)
-
-      assert !result
       net_imap.verify
     end
   end
@@ -230,30 +124,8 @@ class ActionMailbox::IMAP::Adapters::NetImap::Test < ActiveSupport::TestCase
         usessl: true
       )
 
-      result = fake_adapter.move_message_to(1, "Saved")
+      fake_adapter.move_message_to(1, "Saved")
 
-      assert result
-      net_imap.verify
-    end
-  end
-
-  test ".move_message returns false when it fails to move a message" do
-    net_imap = MiniTest::Mock.new
-    net_imap.expect :new, net_imap, ["some.server.com", 993, true]
-    def net_imap.copy(id, mailbox)
-      throw Exception
-    end
-
-    Net.stub_const :IMAP, net_imap do
-      fake_adapter = ActionMailbox::IMAP::Adapters::NetImap.new(
-        server: "some.server.com",
-        port: 993,
-        usessl: true
-      )
-
-      result = fake_adapter.move_message_to(1, "Saved")
-
-      assert !result
       net_imap.verify
     end
   end
@@ -279,26 +151,6 @@ class ActionMailbox::IMAP::Adapters::NetImap::Test < ActiveSupport::TestCase
       result = fake_adapter.fetch_message_attr(1, "RFC822")
 
       assert result == "success"
-      net_imap.verify
-    end
-  end
-
-  test ".fetch_message_attr returns false when Net::IMAP throws exception" do
-    net_imap = MiniTest::Mock.new
-    net_imap.expect :new, net_imap, ["some.server.com", 993, true]
-    def net_imap.fetch(id, attr)
-      throw Exception
-    end
-
-    Net.stub_const :IMAP, net_imap do
-      fake_adapter = ActionMailbox::IMAP::Adapters::NetImap.new(
-        server: "some.server.com",
-        port: 993,
-        usessl: true
-      )
-
-      result = fake_adapter.fetch_message_attr(1, "RFC822")
-
       net_imap.verify
     end
   end
