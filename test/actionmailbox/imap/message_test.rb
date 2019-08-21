@@ -45,26 +45,4 @@ class ActionMailbox::IMAP::Message::Test < ActiveSupport::TestCase
     assert !result
     fake_adapter.verify
   end
-
-  test ".move_to calls adapter move_message_to successfully" do
-    fake_adapter = MiniTest::Mock.new
-    fake_adapter.expect :move_message_to, true, [1, "TRASH"]
-
-    message = ActionMailbox::IMAP::Message.new(adapter: fake_adapter, id: 1)
-    result = message.move_to("TRASH")
-
-    assert result
-    fake_adapter.verify
-  end
-
-  test ".move_to returns false when adapter returns false" do
-    fake_adapter = MiniTest::Mock.new
-    fake_adapter.expect :move_message_to, false, [1, "TRASH"]
-
-    message = ActionMailbox::IMAP::Message.new(adapter: fake_adapter, id: 1)
-    result = message.move_to("TRASH")
-
-    assert !result
-    fake_adapter.verify
-  end
 end
