@@ -1,5 +1,5 @@
 # ActionMailbox::IMAP
-[![CircleCI](https://circleci.com/gh/kimmelsg/actionmailbox-imap.svg?style=svg)](https://circleci.com/gh/kimmelsg/actionmailbox-imap)
+[![CircleCI](https://circleci.com/gh/kimmelsg/actionmailbox-imap.svg?style=svg)](https://circleci.com/gh/kimmelsg/actionmailbox-imap) [![RubyGems](https://badge.fury.io/rb/actionmailbox-imap.svg)](https://rubygems.org/gems/actionmailbox-imap)
 
 A IMAP relay for ActionMailbox.
 
