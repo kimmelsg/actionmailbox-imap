@@ -24,12 +24,13 @@ namespace :action_mailbox do
 
       imap.login(username: config[:username], password: config[:password])
 
-      mailbox = imap.select_mailbox(config[:ingress_mailbox])
+      mailbox = imap.mailbox(config[:ingress_mailbox])
 
-      mailbox.not_deleted.take(config[:take]).each do |message|
-        ActionMailbox::Relayer.new(url: url, password: password).relay(message.rfc822).tap do |result|
+      relayer = ActionMailbox::Relayer.new(url: url, password: password)
+
+      mailbox.messages.take(config[:take]).each do |message|
+        relayer.relay(message.rfc822).tap do |result|
           message.delete if result.success?
-          message.move_to(config[:retry_mailbox]) unless result.success?
         end
       end
 
