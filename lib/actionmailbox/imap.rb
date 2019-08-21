@@ -12,7 +12,7 @@ module ActionMailbox
         adapter.login(username: username, password: password)
       end
 
-      def select_mailbox(mailbox)
+      def mailbox(mailbox)
         adapter.select_mailbox(mailbox)
         Mailbox.new(adapter: adapter, mailbox: mailbox)
       end

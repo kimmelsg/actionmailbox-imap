@@ -13,22 +13,22 @@ class ActionMailbox::IMAP::Base::Test < ActiveSupport::TestCase
     mock.verify
   end
 
-  test ".select_mailbox will call adapter select_mailbox" do
+  test ".mailbox will call adapter select_mailbox" do
     mock = Minitest::Mock.new
     mock.expect :select_mailbox, nil, ["INBOX"]
 
     imap = ActionMailbox::IMAP::Base.new(adapter: mock)
 
-    imap.select_mailbox("INBOX")
+    imap.mailbox("INBOX")
     mock.verify
   end
 
-  test ".select_mailbox returns a Mailbox successfully" do
+  test ".mailbox returns a Mailbox successfully" do
     mock = Minitest::Mock.new
     mock.expect :select_mailbox, true, ["INBOX"]
 
     imap = ActionMailbox::IMAP::Base.new(adapter: mock)
-    mailbox = imap.select_mailbox("INBOX")
+    mailbox = imap.mailbox("INBOX")
 
     assert_instance_of(ActionMailbox::IMAP::Mailbox, mailbox)
     mock.verify

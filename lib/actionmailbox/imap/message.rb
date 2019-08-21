@@ -16,10 +16,6 @@ module ActionMailbox
         adapter.delete_message(id)
       end
 
-      def move_to(mailbox)
-        adapter.move_message_to(id, mailbox)
-      end
-
       private
 
       attr_reader :adapter, :id
