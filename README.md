@@ -52,7 +52,7 @@ Prepare your IMAP server and account by ensuring/creating the mailboxes for `ing
 
 Update the `config/imap.yml` that was generated to include server and credentials information, `ingress_mailbox` and an appropriate `take` amount ( the amount of emails to grab in a single run ).
 
-Run or schedule `rails action_mailbox:ingress:imap URL="http://localhost/rails/action_mailbox/inbound_email" INGRESS_PASSWORD="YourIngressPassword"` to run at a selected interval. 
+Run or schedule `rails action_mailbox:ingress:imap URL="http://localhost/rails/action_mailbox/relay/inbound_email" INGRESS_PASSWORD="YourIngressPassword"` to run at a selected interval. 
 
 The command behaves much like that of the other `action_mailbox:ingress:...` commands in that it relays the message the same way. Although messages should be piped to the other ingress commands and `rails action_mailbox:ingress:imap ...` needs to be scheduled appropriately.
 
