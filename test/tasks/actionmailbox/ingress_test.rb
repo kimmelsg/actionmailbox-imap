@@ -33,7 +33,7 @@ class ActionMailbox::IngressTest < ActiveSupport::TestCase
     net_imap_mock.expect :select_mailbox, nil, ["INBOX"]
 
     fake_message_ids = [1, 2, 3]
-    net_imap_mock.expect :messages_not_deleted, fake_message_ids
+    net_imap_mock.expect :messages, fake_message_ids
     fake_message_ids.each do |id|
       net_imap_mock.expect :mark_message_seen, nil, [id]
     end
@@ -101,7 +101,7 @@ class ActionMailbox::IngressTest < ActiveSupport::TestCase
     net_imap_mock.expect :login, nil, [username: "some@email.com", password: "smtp_password"]
     net_imap_mock.expect :select_mailbox, nil, ["INBOX"]
     fake_message_ids = [1, 2, 3]
-    net_imap_mock.expect :messages_not_deleted, fake_message_ids
+    net_imap_mock.expect :messages, fake_message_ids
     fake_message_ids.each do |id|
       net_imap_mock.expect :mark_message_seen, nil, [id]
     end
