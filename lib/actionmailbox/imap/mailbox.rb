@@ -9,7 +9,7 @@ module ActionMailbox
       end
 
       def messages
-        result = adapter.messages_not_deleted
+        result = adapter.messages
         Messages.new(adapter: adapter, message_ids: result)
       end
 
