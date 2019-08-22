@@ -21,12 +21,20 @@ module ActionMailbox
           imap.disconnect
         end
 
-        def messages_not_deleted
-          imap.search(["NOT", "DELETED"])
+        def messages
+          imap.search(["NOT", "DELETED", "NOT", "SEEN"])
         end
 
         def delete_message(id)
           imap.store(id, "+FLAGS", [:Deleted])
+        end
+
+        def mark_message_seen(id)
+          imap.store(id, "+FLAGS", [:Seen])
+        end
+
+        def mark_message_unseen(id)
+          imap.store(id, "-FLAGS", [:Seen])
         end
 
         def fetch_message_attr(id, attr)

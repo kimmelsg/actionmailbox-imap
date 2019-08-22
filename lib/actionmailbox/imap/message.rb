@@ -16,6 +16,14 @@ module ActionMailbox
         adapter.delete_message(id)
       end
 
+      def mark_read
+        adapter.mark_message_seen(id)
+      end
+
+      def mark_unread
+        adapter.mark_message_unseen(id)
+      end
+
       private
 
       attr_reader :adapter, :id

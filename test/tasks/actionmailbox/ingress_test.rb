@@ -31,7 +31,12 @@ class ActionMailbox::IngressTest < ActiveSupport::TestCase
     net_imap_mock.expect :new, net_imap_mock, [server: "smtp.email.com", port: 993, usessl: true]
     net_imap_mock.expect :login, nil, [username: "some@email.com", password: "smtp_password"]
     net_imap_mock.expect :select_mailbox, nil, ["INBOX"]
-    net_imap_mock.expect :messages_not_deleted, [1, 2, 3]
+
+    fake_message_ids = [1, 2, 3]
+    net_imap_mock.expect :messages_not_deleted, fake_message_ids
+    fake_message_ids.each do |id|
+      net_imap_mock.expect :mark_message_seen, nil, [id]
+    end
 
     net_imap_mock.expect :fetch_message_attr, "message 1", [1, "RFC822"]
     net_imap_mock.expect :fetch_message_attr, "message 2", [2, "RFC822"]
@@ -95,7 +100,11 @@ class ActionMailbox::IngressTest < ActiveSupport::TestCase
     net_imap_mock.expect :new, net_imap_mock, [server: "smtp.email.com", port: 993, usessl: true]
     net_imap_mock.expect :login, nil, [username: "some@email.com", password: "smtp_password"]
     net_imap_mock.expect :select_mailbox, nil, ["INBOX"]
-    net_imap_mock.expect :messages_not_deleted, [1, 2, 3]
+    fake_message_ids = [1, 2, 3]
+    net_imap_mock.expect :messages_not_deleted, fake_message_ids
+    fake_message_ids.each do |id|
+      net_imap_mock.expect :mark_message_seen, nil, [id]
+    end
 
     net_imap_mock.expect :fetch_message_attr, "message 1", [1, "RFC822"]
     net_imap_mock.expect :fetch_message_attr, "message 2", [2, "RFC822"]
@@ -113,8 +122,11 @@ class ActionMailbox::IngressTest < ActiveSupport::TestCase
     end
 
     action_mailbox_relayer_mock.expect :relay, action_mailbox_relayer_result_mock, ["message 1"]
+    net_imap_mock.expect :mark_message_unseen, nil, [1]
     action_mailbox_relayer_mock.expect :relay, action_mailbox_relayer_result_mock, ["message 2"]
+    net_imap_mock.expect :mark_message_unseen, nil, [2]
     action_mailbox_relayer_mock.expect :relay, action_mailbox_relayer_result_mock, ["message 3"]
+    net_imap_mock.expect :mark_message_unseen, nil, [3]
 
     net_imap_mock.expect :disconnect, nil
 

@@ -75,10 +75,10 @@ class ActionMailbox::IMAP::Adapters::NetImap::Test < ActiveSupport::TestCase
     end
   end
 
-  test ".message_not_deleted calls search successfully" do
+  test ".messages calls search successfully" do
     net_imap = MiniTest::Mock.new
     net_imap.expect :new, net_imap, ["some.server.com", 993, true]
-    net_imap.expect :search, [1, 2], [["NOT", "DELETED"]]
+    net_imap.expect :search, [1, 2], [["NOT", "DELETED", "NOT", "SEEN"]]
 
     Net.stub_const :IMAP, net_imap do
       fake_adapter = ActionMailbox::IMAP::Adapters::NetImap.new(
@@ -87,7 +87,7 @@ class ActionMailbox::IMAP::Adapters::NetImap::Test < ActiveSupport::TestCase
         usessl: true
       )
 
-      fake_adapter.messages_not_deleted
+      fake_adapter.messages
 
       net_imap.verify
     end
@@ -106,6 +106,42 @@ class ActionMailbox::IMAP::Adapters::NetImap::Test < ActiveSupport::TestCase
       )
 
       fake_adapter.delete_message(1)
+
+      net_imap.verify
+    end
+  end
+
+  test ".mark_message_seen marks a message as seen" do
+    net_imap = MiniTest::Mock.new
+    net_imap.expect :new, net_imap, ["some.server.com", 993, true]
+    net_imap.expect :store, nil, [1, "+FLAGS", [:Seen]]
+
+    Net.stub_const :IMAP, net_imap do
+      fake_adapter = ActionMailbox::IMAP::Adapters::NetImap.new(
+        server: "some.server.com",
+        port: 993,
+        usessl: true
+      )
+
+      fake_adapter.mark_message_seen(1)
+
+      net_imap.verify
+    end
+  end
+
+  test ".mark_message_unseen marks a message as seen" do
+    net_imap = MiniTest::Mock.new
+    net_imap.expect :new, net_imap, ["some.server.com", 993, true]
+    net_imap.expect :store, nil, [1, "-FLAGS", [:Seen]]
+
+    Net.stub_const :IMAP, net_imap do
+      fake_adapter = ActionMailbox::IMAP::Adapters::NetImap.new(
+        server: "some.server.com",
+        port: 993,
+        usessl: true
+      )
+
+      fake_adapter.mark_message_unseen(1)
 
       net_imap.verify
     end
