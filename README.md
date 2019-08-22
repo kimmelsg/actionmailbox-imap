@@ -16,7 +16,7 @@ If the rake task fails to relay a message to ActionMailbox then it will ignore i
 It seems that there is no plans to create some sort of IMAP implementation relay in ActionMailbox. 
 https://github.com/rails/actionmailbox/issues/14
 
-There is probably a reason for this. We did not want to setup or maintain a mailserver which would probably be the route to go for a robust inboud email application.
+There is probably a reason for this. We did not want to setup or maintain a mailserver which would probably be the route to go for a robust inbound email application.
 
 ## Usage
 
