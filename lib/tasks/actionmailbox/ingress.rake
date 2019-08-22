@@ -28,9 +28,14 @@ namespace :action_mailbox do
 
       relayer = ActionMailbox::Relayer.new(url: url, password: password)
 
-      mailbox.messages.take(config[:take]).each do |message|
+      messages = mailbox.messages.take(config[:take])
+
+      messages.mark_read
+
+      messages.each do |message|
         relayer.relay(message.rfc822).tap do |result|
           message.delete if result.success?
+          message.mark_unread unless result.success?
         end
       end
 

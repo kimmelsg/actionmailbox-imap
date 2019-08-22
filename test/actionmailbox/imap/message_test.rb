@@ -35,14 +35,25 @@ class ActionMailbox::IMAP::Message::Test < ActiveSupport::TestCase
     fake_adapter.verify
   end
 
-  test ".delete returns false when the adapter returns false" do
+  test ".mark_read calls adapter mark_message_seen successfully" do
     fake_adapter = MiniTest::Mock.new
-    fake_adapter.expect :delete_message, false, [1]
+    fake_adapter.expect :mark_message_seen, true, [1]
 
     message = ActionMailbox::IMAP::Message.new(adapter: fake_adapter, id: 1)
-    result = message.delete
+    result = message.mark_read
 
-    assert !result
+    assert result
+    fake_adapter.verify
+  end
+
+  test ".mark_unread calls adapter mark_message_unseen successfully" do
+    fake_adapter = MiniTest::Mock.new
+    fake_adapter.expect :mark_message_unseen, true, [1]
+
+    message = ActionMailbox::IMAP::Message.new(adapter: fake_adapter, id: 1)
+    result = message.mark_unread
+
+    assert result
     fake_adapter.verify
   end
 end
