@@ -25,6 +25,18 @@ module ActionMailbox
         end
       end
 
+      def mark_read
+        message_ids.each do |id|
+          adapter.mark_message_seen(id)
+        end
+      end
+
+      def mark_unread
+        message_ids.each do |id|
+          adapter.mark_message_unseen(id)
+        end
+      end
+
       private
 
       attr_reader :adapter, :message_ids
