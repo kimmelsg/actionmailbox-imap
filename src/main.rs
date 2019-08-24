@@ -122,6 +122,9 @@ fn main() {
         }
 
         println!("Activity detected.");
+
+        std::thread::sleep(std::time::Duration::from_millis(800));
+
         println!("Grabbing new messages from mailbox.");
 
         let mut message_ids = match session.search("NOT DELETED NOT SEEN") {
@@ -301,6 +304,14 @@ fn main() {
                         }
                     }
                 }
+            }
+
+            match session.expunge() {
+                Err(error) => {
+                    println!("Failed to expunge deleted messages.");
+                    println!("Error: {}", error);
+                }
+                _ => (),
             }
 
             continue 'idle;
