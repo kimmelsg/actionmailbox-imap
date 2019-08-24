@@ -1,5 +1,3 @@
-require "actionmailbox/imap/adapters/net_imap"
-
 namespace :action_mailbox do
   namespace :ingress do
     task :environment do
