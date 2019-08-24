@@ -1,6 +1,20 @@
-server: "smtp.testing.com"
+server: "outlook.office365.com"
+
+# Currently TLS is required
 port: 993
 tls: true
-username: "test@test.com"
-password: "test"
-mailbox: "INBOX"
+
+username: "walter2@kimmel.com"
+password: "Kimmel trench capon2"
+
+# The mailbox to select unread messages from
+mailbox: "RETRY"
+
+#
+# Workers
+#
+# This is the number of threads used to process
+# all unread messages from the IMAP server.
+#
+# DO NOT use more workers than you have threads available.
+workers: 4

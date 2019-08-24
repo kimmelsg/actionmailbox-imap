@@ -1,6 +1,20 @@
-server: "imap.domain.com"
+server: "some.server.com"
+
+# Currently TLS is required
 port: 993
 tls: true
-username: "username"
+
+username: "user@domain.com"
 password: "password"
+
+# The mailbox to select unread messages from
 mailbox: "INBOX"
+
+#
+# Workers
+#
+# This is the number of threads used to process
+# all unread messages from the IMAP server.
+#
+# DO NOT use more workers than you have threads available.
+workers: 4
