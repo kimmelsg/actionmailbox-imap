@@ -59,7 +59,7 @@ Run the [ActionMailbox::IMAP Client](https://github.com/kimmelsg/actionmailbox-i
 
 ### Rake Task
 
-The rake task behaves much like that of the other `action_mailbox:ingress:...` commands in that it relays the message the same way. Although messages should be piped to the other ingress commands and `rails action_mailbox:ingress:imap ...` needs to be scheduled appropriately.
+The rake task behaves much like that of the other `action_mailbox:ingress:...` commands in that it relays the message the same way.
 
 ## Installation
 Add this line to your application's Gemfile:
