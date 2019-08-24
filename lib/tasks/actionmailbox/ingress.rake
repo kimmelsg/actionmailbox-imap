@@ -1,5 +1,3 @@
-require "actionmailbox/imap/adapters/net_imap"
-
 namespace :action_mailbox do
   namespace :ingress do
     task :environment do
@@ -12,34 +10,22 @@ namespace :action_mailbox do
     task imap: "action_mailbox:ingress:environment" do
       url, password = ENV.values_at("URL", "INGRESS_PASSWORD")
 
-      config = Rails.application.config_for(:actionmailbox_imap)
-
-      adapter = ActionMailbox::IMAP::Adapters::NetImap.new(
-        server: config[:server],
-        port: config[:port],
-        usessl: config[:usessl]
-      )
-
-      imap = ActionMailbox::IMAP::Base.new(adapter: adapter)
-
-      imap.login(username: config[:username], password: config[:password])
-
-      mailbox = imap.mailbox(config[:ingress_mailbox])
-
-      relayer = ActionMailbox::Relayer.new(url: url, password: password)
-
-      messages = mailbox.messages.take(config[:take])
-
-      messages.mark_read
-
-      messages.each do |message|
-        relayer.relay(message.rfc822).tap do |result|
-          message.delete if result.success?
-          message.mark_unread unless result.success?
-        end
+      if url.blank? || password.blank?
+        print "URL and INGRESS_PASSWORD are required"
+        exit 64 # EX_USAGE
       end
 
-      imap.disconnect
+      ActionMailbox::Relayer.new(url: url, password: password).relay(STDIN.read).tap do |result|
+        print result.message
+
+        if result.success?
+          exit 0
+        elsif result.transient_failure?
+          exit 75 # EX_TEMPFAIL
+        else
+          exit 69 # EX_UNAVAILABLE
+        end
+      end
     end
   end
 end
