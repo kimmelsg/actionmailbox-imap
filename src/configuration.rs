@@ -9,6 +9,7 @@ pub struct ConfigObject {
     username: String,
     password: String,
     mailbox: String,
+    workers: usize,
 }
 
 impl ConfigObject {
@@ -28,6 +29,10 @@ impl ConfigObject {
         &self.port
     }
 
+    pub fn tls(&self) -> &bool {
+        &self.tls
+    }
+
     pub fn username(&self) -> &String {
         &self.username
     }
@@ -38,5 +43,9 @@ impl ConfigObject {
 
     pub fn mailbox(&self) -> &String {
         &self.mailbox
+    }
+
+    pub fn workers(&self) -> usize {
+        self.workers
     }
 }

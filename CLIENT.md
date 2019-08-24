@@ -12,6 +12,14 @@ Once a message is fetched from the server, the client will then pass a message t
 
 The ingress command will then relay the message to ActionMailbox via HTTP(S) as like the other ActionMailbox ingress options.
 
+### Configuration
+
+The only configuration now is the number of worker threads you want available to process email messages. Each message gets processed in its own worker.
+
+`config/actionmailbox_imap.yml`
+```yaml
+workers: 4
+```
 ### Build
 
 To build the client run...
