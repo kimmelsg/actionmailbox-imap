@@ -50,6 +50,11 @@ fn main() {
         }
     };
 
+    if config.tls() == &false {
+        println!("TLS is required. Please use with a server that supports it.");
+        std::process::exit(64);
+    }
+
     let client = match ImapClient::new(&config) {
         Ok(client) => client,
         Err(error) => {
@@ -92,7 +97,7 @@ fn main() {
     .expect("Error listening for SIGTERM.");
 
     'idle: loop {
-        let pool = ThreadPool::new(4);
+        let pool = ThreadPool::new(config.workers());
         let (tx, rx) = channel();
 
         let idle = match session.idle() {
@@ -301,6 +306,7 @@ fn main() {
             continue 'idle;
         }
 
+        println!("Recived SIGINT, exiting...");
         std::process::exit(0);
     }
 }
