@@ -14,7 +14,7 @@ The ingress command will then relay the message to ActionMailbox via HTTP(S) as 
 
 ### Download
 
-To download the client, visit the releases page. Ensure that version major and minor matches the major and minor of the gem you plan on using in your rails application.
+To download the client, visit the [releases](https://github.com/kimmelsg/actionmailbox-imap/releases) page. Ensure that version major and minor matches the major and minor of the gem you plan on using in your rails application.
 
 ### Configuration
 
