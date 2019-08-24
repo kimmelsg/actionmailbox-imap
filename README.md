@@ -53,7 +53,7 @@ Prepare your IMAP server and account by ensuring/creating the mailboxes for `ing
 
 Update the `config/imap.yml` that was generated to include server and credentials information, `mailbox`. Currently SSL is required.
 
-Run the [ActionMailbox::IMAP Client](https://github.com/kimmelsg/actionmailbox-imap/blob/master/CLIENT.md) like so `URL=... INGRESS_PASSWORD=... ./actionmailbox-imap` to begin processing emails.
+Run the [ActionMailbox::IMAP Client](https://github.com/kimmelsg/actionmailbox-imap/blob/master/CLIENT.md) like so `URL=... INGRESS_PASSWORD=... ./actionmailbox-imap` from within rails root to begin processing emails.
 
 `NOTE: Running the client will begin immediately begin processing unread emails in the configured mailbox. The server (URL) needs to be running. You may also want to start from a empty, or plan on watching the process to ensure no performance issues occur.`
 
