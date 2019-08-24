@@ -12,6 +12,10 @@ Once a message is fetched from the server, the client will then pass a message t
 
 The ingress command will then relay the message to ActionMailbox via HTTP(S) as like the other ActionMailbox ingress options.
 
+### Download
+
+To download the client, visit the releases page. Ensure that version major and minor matches the major and minor of the gem you plan on using in your rails application.
+
 ### Configuration
 
 The only configuration now is the number of worker threads you want available to process email messages. Each message gets processed in its own worker.
