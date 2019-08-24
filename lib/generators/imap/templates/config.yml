@@ -1,6 +1,6 @@
 server: "imap.domain.com"
 port: 993
-usessl: true
+tls: true
 username: "username"
 password: "password"
 mailbox: "INBOX"
