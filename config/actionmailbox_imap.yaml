@@ -1,0 +1,6 @@
+server: "smtp.testing.com"
+port: 993
+tls: true
+username: "test@test.com"
+password: "test"
+mailbox: "INBOX"
