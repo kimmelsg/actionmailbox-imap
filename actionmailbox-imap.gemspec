@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email = ["eknowlton@gmail.com"]
   spec.homepage = "https://github.com/kimmelsg"
   spec.summary = "Relay IMAP messages to ActionMailbox"
-  spec.description = "Relay IMAP messages to ActionMailbox"
+  spec.description = "Relay IMAP messages to ActionMailbox. This package requires the rust imap client binary to be run. Visit the repository ReadMe for more information."
   spec.license = "MIT"
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
