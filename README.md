@@ -55,6 +55,8 @@ Update the `config/imap.yml` that was generated to include server and credential
 
 Run the [ActionMailbox::IMAP Client](https://github.com/kimmelsg/actionmailbox-imap/blob/master/CLIENT.md) like so `URL=... INGRESS_PASSWORD=... ./actionmailbox-imap` to begin processing emails.
 
+`NOTE: Running the client will begin immediately begin processing unread emails in the configured mailbox. The server (URL) needs to be running. You may also want to start from a empty, or plan on watching the process to ensure no performance issues occur.`
+
 ### Rake Task
 
 The rake task behaves much like that of the other `action_mailbox:ingress:...` commands in that it relays the message the same way. Although messages should be piped to the other ingress commands and `rails action_mailbox:ingress:imap ...` needs to be scheduled appropriately.
