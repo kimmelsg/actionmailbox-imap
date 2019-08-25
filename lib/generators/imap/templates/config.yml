@@ -18,3 +18,11 @@ mailbox: "INBOX"
 #
 # DO NOT use more workers than you have threads available.
 workers: 4
+
+# Wait (in ms)
+#
+# Once a server sends the ANY back from waiting
+# for activity, you can wait some time before grabbing
+# messages. This way the client should grab more than
+# just the first message to to trigger activity.
+wait: 800

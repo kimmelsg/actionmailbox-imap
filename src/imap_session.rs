@@ -29,7 +29,7 @@ impl<'a, 's> ImapSession<'a, 's> {
 
         println!("Activity detected.");
 
-        std::thread::sleep(std::time::Duration::from_millis(800));
+        std::thread::sleep(std::time::Duration::from_millis(self.config.wait()));
 
         println!("Grabbing new messages from mailbox.");
 
