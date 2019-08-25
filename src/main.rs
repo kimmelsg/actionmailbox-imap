@@ -226,7 +226,6 @@ fn main() {
                             Err(error) => {
                                 println!("Error marking flagged unread: Seq {}", message_id);
                                 println!("Error: {}", error);
-        std::thread::sleep(std::time::Duration::from_millis(self.config.wait()));
                             }
                             _ => (),
                         },
