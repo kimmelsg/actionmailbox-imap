@@ -192,9 +192,16 @@ fn main() {
                         }
                     }
                     Err(error) => {
-                        println!("Failed to pass to ingress.");
-                        println!("Error: {}", error);
-                        std::process::exit(126);
+                        println!("Seq {} :: Failed to pass to ingress.", message_id);
+                        println!("Seq {} :: Error: {}", message_id, error);
+
+                        match job.send(Err(message_id)) {
+                            Err(error) => {
+                                println!("Seq {} :: Failed send command", message_id);
+                                println!("Seq {} :: Error: {}", message_id, error);
+                            }
+                            _ => (),
+                        }
                     }
                 },
             );
@@ -215,10 +222,11 @@ fn main() {
                                 _ => (),
                             }
                         }
-                        Err(message_id) => match session.mark_message_unread(message_id) {
+                        Err(message_id) => match session.mark_message_flagged(message_id) {
                             Err(error) => {
-                                println!("Error marking message unread: Seq {}", message_id);
+                                println!("Error marking flagged unread: Seq {}", message_id);
                                 println!("Error: {}", error);
+        std::thread::sleep(std::time::Duration::from_millis(self.config.wait()));
                             }
                             _ => (),
                         },
@@ -242,9 +250,9 @@ fn main() {
                             _ => (),
                         }
                     }
-                    Err(message_id) => match session.mark_message_unread(message_id) {
+                    Err(message_id) => match session.mark_message_flagged(message_id) {
                         Err(error) => {
-                            println!("Error marking message unread: Seq {}", message_id);
+                            println!("Error marking flagged unread: Seq {}", message_id);
                             println!("Error: {}", error);
                         }
                         _ => (),

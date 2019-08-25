@@ -20,7 +20,7 @@ impl<'a, 's> ImapSession<'a, 's> {
 
     pub fn wait_for_messages(
         &mut self,
-    ) -> imap::error::Result<std::collections::HashSet<imap::types::Seq>> {
+    ) -> imap::error::Result<std::collections::HashSet<imap::types::Uid>> {
         let idle = self.session.idle()?;
 
         println!("Begin listening for activity on IMAP server.");
@@ -33,31 +33,42 @@ impl<'a, 's> ImapSession<'a, 's> {
 
         println!("Grabbing new messages from mailbox.");
 
-        self.session.search("NOT DELETED NOT SEEN")
+        self.session.uid_search("NOT DELETED NOT SEEN NOT FLAGGED")
+    }
+
+    pub fn mark_message_flagged(
+        &mut self,
+        id: u32,
+    ) -> imap::error::Result<imap::types::ZeroCopy<Vec<imap::types::Fetch>>> {
+        self.session
+            .uid_store(format!("{}", id), "+FLAGS (\\Flagged)")
     }
 
     pub fn mark_message_read(
         &mut self,
         id: u32,
     ) -> imap::error::Result<imap::types::ZeroCopy<Vec<imap::types::Fetch>>> {
-        self.session.store(format!("{}", id), "+FLAGS (\\Seen)")
+        self.session.uid_store(format!("{}", id), "+FLAGS (\\Seen)")
     }
 
     pub fn mark_message_unread(
         &mut self,
         id: u32,
     ) -> imap::error::Result<imap::types::ZeroCopy<Vec<imap::types::Fetch>>> {
-        self.session.store(format!("{}", id), "-flags (\\Seen)")
+        self.session.uid_store(format!("{}", id), "-flags (\\Seen)")
     }
 
     pub fn mark_message_deleted(
         &mut self,
         id: u32,
     ) -> imap::error::Result<imap::types::ZeroCopy<Vec<imap::types::Fetch>>> {
-        self.session.store(format!("{}", id), "+FLAGS (\\Deleted)")
+        self.session
+            .uid_store(format!("{}", id), "+FLAGS (\\Deleted)")
     }
+
+    ///
     pub fn get_message_body(&mut self, id: u32) -> Option<Vec<u8>> {
-        let messages = match self.session.fetch(format!("{}", id), "RFC822") {
+        let messages = match self.session.uid_fetch(format!("{}", id), "RFC822") {
             Ok(messages) => messages,
             Err(_) => return None,
         };
@@ -71,7 +82,7 @@ impl<'a, 's> ImapSession<'a, 's> {
         Some(body)
     }
 
-    pub fn expunge(&mut self) -> imap::error::Result<Vec<imap::types::Seq>> {
+    pub fn expunge(&mut self) -> imap::error::Result<Vec<imap::types::Uid>> {
         self.session.expunge()
     }
 
