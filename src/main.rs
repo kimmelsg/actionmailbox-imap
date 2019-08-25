@@ -155,6 +155,15 @@ fn main() {
                 Ok(url) => url,
                 _ => {
                     println!("Environment variable URL missing. URL is required.");
+
+                    match session.mark_message_unread(message_id) {
+                        Err(error) => {
+                            println!("Failed to mark message as unread.");
+                            println!("Error: {}", error);
+                        }
+                        _ => (),
+                    }
+
                     std::process::exit(64);
                 }
             };
