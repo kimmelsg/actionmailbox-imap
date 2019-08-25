@@ -8,7 +8,7 @@ A IMAP relay for ActionMailbox.
 This is a very simple gem that provides a rake task attempt to relay messsages to ActionMailbox from the [ActionMailbox::IMAP Client](https://github.com/kimmelsg/actionmailbox-imap/blob/master/CLIENT.md).
 
 If a message is successuflly relayed to ActionMailbox, then the message will be marked deleted.
-If a message is not successfully relayed to ActionMailbox, then the message will be marked Unread in order to be processed again later.
+If a message is not successfully relayed to ActionMailbox, then the message will be marked flagged.
 
 ### Why it was created
 
