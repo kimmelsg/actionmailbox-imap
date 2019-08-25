@@ -6,6 +6,9 @@ extern crate threadpool;
 
 mod configuration;
 mod imap_client;
+mod imap_session;
+
+use imap_session::ImapSession;
 
 use std::sync::mpsc::channel;
 use threadpool::ThreadPool;
@@ -15,7 +18,7 @@ use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
-use configuration::ConfigObject;
+use configuration::Configuration;
 use imap_client::ImapClient;
 
 fn pass_to_ingress(
@@ -41,7 +44,7 @@ fn pass_to_ingress(
 }
 
 fn main() {
-    let config = match ConfigObject::new("config/actionmailbox_imap.yml") {
+    let config = match Configuration::new("config/actionmailbox_imap.yml") {
         Ok(config) => config,
         Err(error) => {
             println!("Failed to build configuration.");
@@ -75,9 +78,11 @@ fn main() {
         }
     };
 
+    let mut session = ImapSession::from(&config, &mut session);
+
     println!("Logged into the IMAP server.");
 
-    match session.select(config.mailbox()) {
+    match session.select_mailbox() {
         Err(error) => {
             println!("A error occured selecting the inbox.");
             println!("Error: {}", error);
@@ -100,47 +105,20 @@ fn main() {
         let pool = ThreadPool::new(config.workers());
         let (tx, rx) = channel();
 
-        let idle = match session.idle() {
-            Err(error) => {
-                println!("Failed to send command: IDLE");
-                println!("IMAP server may not support IDLE command.");
-                println!("Error: {}", error);
-                std::process::exit(126);
-            }
-            Ok(idle) => idle,
-        };
-
-        println!("Begin listening for activity on IMAP server.");
-
-        match idle.wait_keepalive() {
+        let mut messages = match session.wait_for_messages() {
             Err(error) => {
                 println!("Failed to wait and keepalive.");
                 println!("Error: {}", error);
                 std::process::exit(126);
             }
-            _ => (),
-        }
-
-        println!("Activity detected.");
-
-        std::thread::sleep(std::time::Duration::from_millis(800));
-
-        println!("Grabbing new messages from mailbox.");
-
-        let mut message_ids = match session.search("NOT DELETED NOT SEEN") {
-            Ok(message_ids) => message_ids,
-            Err(error) => {
-                println!("Failed to search for NOT DELETED NOT SEEN messages.");
-                println!("Error: {}", error);
-                std::process::exit(126);
-            }
+            Ok(messages) => messages,
         };
 
-        for message_id in message_ids.drain() {
+        for message_id in messages.drain() {
             println!("Passing message to ingress: Seq {}", message_id);
             let job = tx.clone();
 
-            match session.store(format!("{}", message_id), "+FLAGS (\\Seen)") {
+            match session.mark_message_read(message_id) {
                 Err(error) => {
                     println!("Failed to mark message as Seen: Seq {}", message_id);
                     println!("Error: {}", error);
@@ -148,38 +126,12 @@ fn main() {
                 _ => (),
             }
 
-            // fetch message
-            let messages = match session.fetch(format!("{}", message_id), "RFC822") {
-                Ok(messages) => messages,
-                Err(error) => {
-                    println!("Failed to fetch message: Seq {}", message_id);
-                    println!("Error: {}", error);
-                    continue;
-                }
-            };
-
-            let message = match messages.iter().next() {
-                Some(message) => message,
-                None => {
-                    println!("Failed to fetch message: Seq {}", message_id);
-
-                    match session.store(format!("{}", message_id), "-flags (\\Seen)") {
-                        Err(error) => {
-                            println!("Failed to fetch message: Seq {}", message_id);
-                            println!("Error: {}", error);
-                        }
-                        _ => (),
-                    }
-                    continue;
-                }
-            };
-
-            let body = match message.body() {
+            let body = match session.get_message_body(message_id) {
                 Some(body) => body,
                 None => {
                     println!("Failed to read body or empty body: Seq {}", message_id);
 
-                    match session.store(format!("{}", message_id), "-FLAGS (\\Seen)") {
+                    match session.mark_message_unread(message_id) {
                         Err(error) => {
                             println!("Error marking message unread: Seq {}", message_id);
                             println!("Error: {}", error);
@@ -206,8 +158,6 @@ fn main() {
                     std::process::exit(64);
                 }
             };
-
-            let body: Vec<u8> = body.iter().cloned().collect();
 
             pool.execute(
                 move || match pass_to_ingress(body, &url[..], &ingress_password[..]) {
@@ -257,7 +207,7 @@ fn main() {
                         Ok(message_id) => {
                             println!("Message successfully passed to ingress. Seq {}", message_id);
 
-                            match session.store(format!("{}", message_id), "+FLAGS (\\Deleted)") {
+                            match session.mark_message_deleted(message_id) {
                                 Err(error) => {
                                     println!("Error deleting message: Seq {}", message_id);
                                     println!("Error: {}", error);
@@ -265,15 +215,13 @@ fn main() {
                                 _ => (),
                             }
                         }
-                        Err(message_id) => {
-                            match session.store(format!("{}", message_id), "-FLAGS (\\Seen)") {
-                                Err(error) => {
-                                    println!("Error marking message unread: Seq {}", message_id);
-                                    println!("Error: {}", error);
-                                }
-                                _ => (),
+                        Err(message_id) => match session.mark_message_unread(message_id) {
+                            Err(error) => {
+                                println!("Error marking message unread: Seq {}", message_id);
+                                println!("Error: {}", error);
                             }
-                        }
+                            _ => (),
+                        },
                     },
                     _ => (),
                 }
@@ -286,7 +234,7 @@ fn main() {
                     Ok(message_id) => {
                         println!("Message successfully passed to ingress. Seq {}", message_id);
 
-                        match session.store(format!("{}", message_id), "+FLAGS (\\Deleted)") {
+                        match session.mark_message_deleted(message_id) {
                             Err(error) => {
                                 println!("Error deleting message: Seq {}", message_id);
                                 println!("Error: {}", error);
@@ -294,15 +242,13 @@ fn main() {
                             _ => (),
                         }
                     }
-                    Err(message_id) => {
-                        match session.store(format!("{}", message_id), "-FLAGS (\\Seen)") {
-                            Err(error) => {
-                                println!("Error marking message unread: Seq {}", message_id);
-                                println!("Error: {}", error);
-                            }
-                            _ => (),
+                    Err(message_id) => match session.mark_message_unread(message_id) {
+                        Err(error) => {
+                            println!("Error marking message unread: Seq {}", message_id);
+                            println!("Error: {}", error);
                         }
-                    }
+                        _ => (),
+                    },
                 }
             }
 
