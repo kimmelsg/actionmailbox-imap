@@ -317,6 +317,7 @@ fn main() {
             continue 'idle;
         }
 
+        session.logout().expect("Failed to logout.");
         println!("Recived SIGINT, exiting...");
         std::process::exit(0);
     }
