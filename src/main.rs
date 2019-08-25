@@ -94,7 +94,7 @@ fn main() {
     ctrlc::set_handler(move || {
         r.store(false, Ordering::SeqCst);
     })
-    .expect("Error listening for SIGTERM.");
+    .expect("Error listening for SIGINT.");
 
     'idle: loop {
         let pool = ThreadPool::new(config.workers());
