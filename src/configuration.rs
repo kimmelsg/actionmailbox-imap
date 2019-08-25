@@ -10,6 +10,7 @@ pub struct Configuration {
     password: String,
     mailbox: String,
     workers: usize,
+    wait: u64,
 }
 
 impl Configuration {
@@ -47,5 +48,9 @@ impl Configuration {
 
     pub fn workers(&self) -> usize {
         self.workers
+    }
+
+    pub fn wait(&self) -> u64 {
+        self.wait
     }
 }
