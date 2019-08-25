@@ -2,7 +2,7 @@ use config::{Config, ConfigError, File};
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
-pub struct ConfigObject {
+pub struct Configuration {
     server: String,
     port: i64,
     tls: bool,
@@ -12,13 +12,13 @@ pub struct ConfigObject {
     workers: usize,
 }
 
-impl ConfigObject {
-    pub fn new(filename: &str) -> Result<ConfigObject, ConfigError> {
+impl Configuration {
+    pub fn new(filename: &str) -> Result<Configuration, ConfigError> {
         let mut config = Config::new();
 
         config.merge(File::with_name(filename))?;
 
-        config.try_into::<ConfigObject>()
+        config.try_into::<Configuration>()
     }
 
     pub fn server(&self) -> &String {

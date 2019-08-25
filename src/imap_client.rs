@@ -1,4 +1,4 @@
-use crate::configuration::ConfigObject;
+use crate::configuration::Configuration;
 use imap::error::Error;
 use std::net::TcpStream;
 
@@ -6,11 +6,11 @@ type ImapClientType = imap::Client<native_tls::TlsStream<TcpStream>>;
 
 pub struct ImapClient<'a> {
     client: ImapClientType,
-    config: &'a ConfigObject,
+    config: &'a Configuration,
 }
 
 impl<'a> ImapClient<'a> {
-    pub fn new(config: &'a ConfigObject) -> Result<Self, Error> {
+    pub fn new(config: &'a Configuration) -> Result<Self, Error> {
         let tls = native_tls::TlsConnector::builder().build()?;
 
         let client = imap::connect(
