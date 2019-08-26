@@ -72,7 +72,7 @@ pub fn process_emails(config: Configuration) {
     let r = running.clone();
 
     ctrlc::set_handler(move || {
-        r.store(false, Ordering::SeqCst);
+        r.store(false, Ordering::UidCst);
     })
     .expect("Error listening for SIGINT.");
 
@@ -90,12 +90,12 @@ pub fn process_emails(config: Configuration) {
         };
 
         for message_id in messages.drain() {
-            println!("Passing message to ingress: Seq {}", message_id);
+            println!("Passing message to ingress: Uid {}", message_id);
             let job = tx.clone();
 
             match session.mark_message_read(message_id) {
                 Err(error) => {
-                    println!("Failed to mark message as Seen: Seq {}", message_id);
+                    println!("Failed to mark message as Seen: Uid {}", message_id);
                     println!("Error: {}", error);
                 }
                 _ => (),
@@ -104,11 +104,11 @@ pub fn process_emails(config: Configuration) {
             let body = match session.get_message_body(message_id) {
                 Some(body) => body,
                 None => {
-                    println!("Failed to read body or empty body: Seq {}", message_id);
+                    println!("Failed to read body or empty body: Uid {}", message_id);
 
                     match session.mark_message_unread(message_id) {
                         Err(error) => {
-                            println!("Error marking message unread: Seq {}", message_id);
+                            println!("Error marking message unread: Uid {}", message_id);
                             println!("Error: {}", error);
                         }
                         _ => (),
@@ -161,15 +161,15 @@ pub fn process_emails(config: Configuration) {
                         };
 
                         println!(
-                            "Seq {} :: Response from ingress command: {}",
+                            "Uid {} :: Response from ingress command: {}",
                             message_id, response
                         );
 
                         if output.status.success() {
                             match job.send(Ok(message_id)) {
                                 Err(error) => {
-                                    println!("Seq {} :: Failed to send result", message_id);
-                                    println!("Seq {} :: Error: {}", message_id, error);
+                                    println!("Uid {} :: Failed to send result", message_id);
+                                    println!("Uid {} :: Error: {}", message_id, error);
                                 }
                                 _ => (),
                             }
@@ -178,20 +178,20 @@ pub fn process_emails(config: Configuration) {
 
                         match job.send(Err(message_id)) {
                             Err(error) => {
-                                println!("Seq {} :: Failed to send result", message_id);
-                                println!("Seq {} :: Error: {}", message_id, error);
+                                println!("Uid {} :: Failed to send result", message_id);
+                                println!("Uid {} :: Error: {}", message_id, error);
                             }
                             _ => (),
                         }
                     }
                     Err(error) => {
-                        println!("Seq {} :: Failed to pass to ingress.", message_id);
-                        println!("Seq {} :: Error: {}", message_id, error);
+                        println!("Uid {} :: Failed to pass to ingress.", message_id);
+                        println!("Uid {} :: Error: {}", message_id, error);
 
                         match job.send(Err(message_id)) {
                             Err(error) => {
-                                println!("Seq {} :: Failed send command", message_id);
-                                println!("Seq {} :: Error: {}", message_id, error);
+                                println!("Uid {} :: Failed send command", message_id);
+                                println!("Uid {} :: Error: {}", message_id, error);
                             }
                             _ => (),
                         }
@@ -200,16 +200,16 @@ pub fn process_emails(config: Configuration) {
             );
         }
 
-        while running.load(Ordering::SeqCst) {
+        while running.load(Ordering::UidCst) {
             while pool.active_count() > 0 && pool.queued_count() > 0 {
                 match rx.try_recv() {
                     Ok(result) => match result {
                         Ok(message_id) => {
-                            println!("Message successfully passed to ingress. Seq {}", message_id);
+                            println!("Message successfully passed to ingress. Uid {}", message_id);
 
                             match session.mark_message_deleted(message_id) {
                                 Err(error) => {
-                                    println!("Error deleting message: Seq {}", message_id);
+                                    println!("Error deleting message: Uid {}", message_id);
                                     println!("Error: {}", error);
                                 }
                                 _ => (),
@@ -217,7 +217,7 @@ pub fn process_emails(config: Configuration) {
                         }
                         Err(message_id) => match session.mark_message_flagged(message_id) {
                             Err(error) => {
-                                println!("Error marking flagged unread: Seq {}", message_id);
+                                println!("Error marking flagged unread: Uid {}", message_id);
                                 println!("Error: {}", error);
                             }
                             _ => (),
@@ -232,11 +232,11 @@ pub fn process_emails(config: Configuration) {
             while let Ok(result) = rx.recv() {
                 match result {
                     Ok(message_id) => {
-                        println!("Message successfully passed to ingress. Seq {}", message_id);
+                        println!("Message successfully passed to ingress. Uid {}", message_id);
 
                         match session.mark_message_deleted(message_id) {
                             Err(error) => {
-                                println!("Error deleting message: Seq {}", message_id);
+                                println!("Error deleting message: Uid {}", message_id);
                                 println!("Error: {}", error);
                             }
                             _ => (),
@@ -244,7 +244,7 @@ pub fn process_emails(config: Configuration) {
                     }
                     Err(message_id) => match session.mark_message_flagged(message_id) {
                         Err(error) => {
-                            println!("Error marking flagged unread: Seq {}", message_id);
+                            println!("Error marking flagged unread: Uid {}", message_id);
                             println!("Error: {}", error);
                         }
                         _ => (),
