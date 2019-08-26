@@ -1,7 +1,6 @@
 use crate::configuration::Configuration;
-use crate::imap_client::ImapClient;
-use crate::imap_session::ImapSession;
 
+use std::net::TcpStream;
 use std::sync::mpsc::channel;
 use threadpool::ThreadPool;
 
@@ -32,239 +31,283 @@ fn pass_to_ingress(
     Ok(output)
 }
 
-pub fn process_emails(config: Configuration) {
-    let client = match ImapClient::new(&config) {
-        Ok(client) => client,
-        Err(error) => {
-            println!("Failed to create IMAP client and connect to server.");
-            println!("Error: {}", error);
-            std::process::exit(126);
-        }
-    };
+type ImapSession = imap::Session<native_tls::TlsStream<TcpStream>>;
 
-    println!("Connected to IMAP server and created client.");
+pub struct Processor<'s> {
+    session: &'s mut ImapSession,
+    config: Configuration,
+}
 
-    let mut session = match client.login() {
-        Ok(session) => session,
-        Err((error, _)) => {
-            println!("Failed logging into the IMAP server. ");
-            println!("Error: {}", error);
-            std::process::exit(126);
-        }
-    };
-
-    let mut session = ImapSession::from(&config, &mut session);
-
-    println!("Logged into the IMAP server.");
-
-    match session.select_mailbox() {
-        Err(error) => {
-            println!("A error occured selecting the inbox.");
-            println!("Error: {}", error);
-            std::process::exit(126);
-        }
-        _ => (),
+impl<'s> Processor<'s> {
+    pub fn new(config: Configuration, session: &'s mut ImapSession) -> Self {
+        Self { config, session }
     }
 
-    println!("Selected '{}' mailbox.", config.mailbox());
+    pub fn process(&mut self) {
+        println!("Logged into the IMAP server.");
 
-    let running = Arc::new(AtomicBool::new(true));
-    let r = running.clone();
-
-    ctrlc::set_handler(move || {
-        r.store(false, Ordering::SeqCst);
-    })
-    .expect("Error listening for SIGINT.");
-
-    'idle: loop {
-        let pool = ThreadPool::new(config.workers());
-        let (tx, rx) = channel();
-
-        let mut messages = match session.wait_for_messages() {
+        match self.select_mailbox() {
             Err(error) => {
-                println!("Failed to wait and keepalive.");
+                println!("A error occured selecting the inbox.");
                 println!("Error: {}", error);
                 std::process::exit(126);
             }
-            Ok(messages) => messages,
-        };
-
-        for message_id in messages.drain() {
-            println!("Passing message to ingress: Uid {}", message_id);
-            let job = tx.clone();
-
-            match session.mark_message_read(message_id) {
-                Err(error) => {
-                    println!("Failed to mark message as Seen: Uid {}", message_id);
-                    println!("Error: {}", error);
-                }
-                _ => (),
-            }
-
-            let body = match session.get_message_body(message_id) {
-                Some(body) => body,
-                None => {
-                    println!("Failed to read body or empty body: Uid {}", message_id);
-
-                    match session.mark_message_unread(message_id) {
-                        Err(error) => {
-                            println!("Error marking message unread: Uid {}", message_id);
-                            println!("Error: {}", error);
-                        }
-                        _ => (),
-                    }
-
-                    continue;
-                }
-            };
-
-            let url = match std::env::var("URL") {
-                Ok(url) => url,
-                _ => {
-                    println!("Environment variable URL missing. URL is required.");
-
-                    match session.mark_message_unread(message_id) {
-                        Err(error) => {
-                            println!("Failed to mark message as unread.");
-                            println!("Error: {}", error);
-                        }
-                        _ => (),
-                    }
-
-                    std::process::exit(64);
-                }
-            };
-
-            let ingress_password = match std::env::var("INGRESS_PASSWORD") {
-                Ok(url) => url,
-                _ => {
-                    println!("Environment variable URL missing. URL is required.");
-
-                    match session.mark_message_unread(message_id) {
-                        Err(error) => {
-                            println!("Failed to mark message as unread.");
-                            println!("Error: {}", error);
-                        }
-                        _ => (),
-                    }
-
-                    std::process::exit(64);
-                }
-            };
-
-            pool.execute(
-                move || match pass_to_ingress(body, &url[..], &ingress_password[..]) {
-                    Ok(output) => {
-                        let response = match String::from_utf8(output.stdout) {
-                            Ok(response) => response,
-                            Err(_) => String::from("Error reading STDOUT"),
-                        };
-
-                        println!(
-                            "Uid {} :: Response from ingress command: {}",
-                            message_id, response
-                        );
-
-                        if output.status.success() {
-                            match job.send(Ok(message_id)) {
-                                Err(error) => {
-                                    println!("Uid {} :: Failed to send result", message_id);
-                                    println!("Uid {} :: Error: {}", message_id, error);
-                                }
-                                _ => (),
-                            }
-                            return;
-                        }
-
-                        match job.send(Err(message_id)) {
-                            Err(error) => {
-                                println!("Uid {} :: Failed to send result", message_id);
-                                println!("Uid {} :: Error: {}", message_id, error);
-                            }
-                            _ => (),
-                        }
-                    }
-                    Err(error) => {
-                        println!("Uid {} :: Failed to pass to ingress.", message_id);
-                        println!("Uid {} :: Error: {}", message_id, error);
-
-                        match job.send(Err(message_id)) {
-                            Err(error) => {
-                                println!("Uid {} :: Failed send command", message_id);
-                                println!("Uid {} :: Error: {}", message_id, error);
-                            }
-                            _ => (),
-                        }
-                    }
-                },
-            );
+            _ => (),
         }
 
-        while running.load(Ordering::SeqCst) {
-            while pool.active_count() > 0 && pool.queued_count() > 0 {
-                match rx.try_recv() {
-                    Ok(result) => match result {
-                        Ok(message_id) => {
-                            println!("Message successfully passed to ingress. Uid {}", message_id);
+        println!("Selected '{}' mailbox.", self.config.mailbox());
 
-                            match session.mark_message_deleted(message_id) {
-                                Err(error) => {
-                                    println!("Error deleting message: Uid {}", message_id);
-                                    println!("Error: {}", error);
+        let running = Arc::new(AtomicBool::new(true));
+        let r = running.clone();
+
+        ctrlc::set_handler(move || {
+            r.store(false, Ordering::SeqCst);
+        })
+        .expect("Error listening for SIGINT.");
+
+        'idle: loop {
+            let pool = ThreadPool::new(self.config.workers());
+            let (tx, rx) = channel();
+
+            let mut messages = self.wait_for_messages();
+
+            while running.load(Ordering::SeqCst) {
+                for id in messages.drain() {
+                    println!("Passing message to ingress: Uid {}", id);
+                    let job = tx.clone();
+
+                    match self.mark_message_read(id) {
+                        Err(error) => {
+                            println!("Failed to mark message as Seen: Uid {}", id);
+                            println!("Error: {}", error);
+                        }
+                        _ => (),
+                    }
+
+                    let body = match self.get_message_body(id) {
+                        Some(body) => body,
+                        None => {
+                            println!("Failed to read body or empty body: Uid {}", id);
+                            self.mark_message_for_retry(id);
+                            continue;
+                        }
+                    };
+
+                    let url = self.config.url().unwrap();
+
+                    let ingress_password = self.config.ingress_password().unwrap();
+
+                    pool.execute(move || {
+                        match pass_to_ingress(body, &url[..], &ingress_password[..]) {
+                            Ok(output) => {
+                                let response = match String::from_utf8(output.stdout) {
+                                    Ok(response) => response,
+                                    Err(_) => String::from("Error reading STDOUT"),
+                                };
+
+                                println!(
+                                    "Uid {} :: Response from ingress command: {}",
+                                    id, response
+                                );
+
+                                if output.status.success() {
+                                    match job.send(Ok(id)) {
+                                        Err(error) => {
+                                            println!("Uid {} :: Failed to send result", id);
+                                            println!("Uid {} :: Error: {}", id, error);
+                                        }
+                                        _ => (),
+                                    }
+                                    return;
                                 }
-                                _ => (),
+
+                                match job.send(Err(id)) {
+                                    Err(error) => {
+                                        println!("Uid {} :: Failed to send result", id);
+                                        println!("Uid {} :: Error: {}", id, error);
+                                    }
+                                    _ => (),
+                                }
+                            }
+                            Err(error) => {
+                                println!("Uid {} :: Failed to pass to ingress.", id);
+                                println!("Uid {} :: Error: {}", id, error);
+
+                                match job.send(Err(id)) {
+                                    Err(error) => {
+                                        println!("Uid {} :: Failed send command", id);
+                                        println!("Uid {} :: Error: {}", id, error);
+                                    }
+                                    _ => (),
+                                }
                             }
                         }
-                        Err(message_id) => match session.mark_message_flagged(message_id) {
-                            Err(error) => {
-                                println!("Error marking flagged unread: Uid {}", message_id);
-                                println!("Error: {}", error);
+                    });
+                }
+
+                while pool.active_count() > 0 && pool.queued_count() > 0 {
+                    match rx.try_recv() {
+                        Ok(result) => match result {
+                            Ok(id) => {
+                                println!("Message successfully passed to ingress. Uid {}", id);
+                                self.mark_message_as_success(id);
                             }
-                            _ => (),
+                            Err(id) => self.mark_message_as_failed(id),
                         },
-                    },
+                        _ => (),
+                    }
+                }
+
+                std::mem::drop(tx);
+
+                while let Ok(result) = rx.recv() {
+                    match result {
+                        Ok(id) => {
+                            println!("Message successfully passed to ingress. Uid {}", id);
+                            self.mark_message_as_success(id);
+                        }
+                        Err(id) => self.mark_message_as_failed(id),
+                    }
+                }
+
+                match self.expunge() {
+                    Err(error) => {
+                        println!("Failed to expunge deleted messages.");
+                        println!("Error: {}", error);
+                    }
                     _ => (),
                 }
+
+                continue 'idle;
             }
 
-            std::mem::drop(tx);
-
-            while let Ok(result) = rx.recv() {
-                match result {
-                    Ok(message_id) => {
-                        println!("Message successfully passed to ingress. Uid {}", message_id);
-
-                        match session.mark_message_deleted(message_id) {
-                            Err(error) => {
-                                println!("Error deleting message: Uid {}", message_id);
-                                println!("Error: {}", error);
-                            }
-                            _ => (),
-                        }
-                    }
-                    Err(message_id) => match session.mark_message_flagged(message_id) {
-                        Err(error) => {
-                            println!("Error marking flagged unread: Uid {}", message_id);
-                            println!("Error: {}", error);
-                        }
-                        _ => (),
-                    },
-                }
-            }
-
-            match session.expunge() {
-                Err(error) => {
-                    println!("Failed to expunge deleted messages.");
-                    println!("Error: {}", error);
-                }
-                _ => (),
-            }
-
-            continue 'idle;
+            self.logout().expect("Failed to logout.");
+            println!("Recived SIGINT, exiting...");
+            std::process::exit(0);
         }
+    }
 
-        session.logout().expect("Failed to logout.");
-        println!("Recived SIGINT, exiting...");
-        std::process::exit(0);
+    fn select_mailbox(&mut self) -> imap::error::Result<imap::types::Mailbox> {
+        self.session.select(self.config.mailbox())
+    }
+
+    fn wait_for_messages(&mut self) -> std::collections::HashSet<imap::types::Uid> {
+        let idle = match self.session.idle() {
+            Ok(idle) => idle,
+            Err(error) => {
+                println!("Failed to send IDLE command.");
+                println!("Error: {}", error);
+                std::process::exit(126);
+            }
+        };
+
+        println!("Begin listening for activity on IMAP server.");
+
+        match idle.wait_keepalive() {
+            Err(error) => {
+                println!("Failed to wait for messages.");
+                println!("Error: {}", error);
+                std::process::exit(126);
+            }
+            _ => (),
+        };
+
+        println!("Activity detected.");
+
+        std::thread::sleep(std::time::Duration::from_millis(self.config.wait()));
+
+        println!("Grabbing new messages from mailbox.");
+
+        match self.session.uid_search("NOT DELETED NOT SEEN NOT FLAGGED") {
+            Ok(messages) => messages,
+            Err(error) => {
+                println!("Failed to wait for messages.");
+                println!("Error: {}", error);
+                std::process::exit(126);
+            }
+        }
+    }
+
+    fn mark_message_for_retry(&mut self, id: u32) {
+        match self.mark_message_unread(id) {
+            Err(error) => {
+                println!("UID {}, Error marking message unread.", id);
+                println!("UID {}, Error: {}", id, error);
+            }
+            _ => (),
+        };
+    }
+
+    fn mark_message_as_failed(&mut self, id: u32) {
+        match self.mark_message_flagged(id) {
+            Err(error) => {
+                println!("UID {}, Error marking message flagged.", id);
+                println!("UID {}, Error: {}", id, error);
+            }
+            _ => (),
+        }
+    }
+
+    fn mark_message_as_success(&mut self, id: u32) {
+        match self.mark_message_deleted(id) {
+            Err(error) => {
+                println!("UID {}, Error marking message unread.", id);
+                println!("UID {}, Error: {}", id, error);
+            }
+            _ => (),
+        };
+    }
+
+    fn mark_message_flagged(
+        &mut self,
+        id: u32,
+    ) -> imap::error::Result<imap::types::ZeroCopy<Vec<imap::types::Fetch>>> {
+        self.session
+            .uid_store(format!("{}", id), "+FLAGS (\\Flagged)")
+    }
+
+    fn mark_message_read(
+        &mut self,
+        id: u32,
+    ) -> imap::error::Result<imap::types::ZeroCopy<Vec<imap::types::Fetch>>> {
+        self.session.uid_store(format!("{}", id), "+FLAGS (\\Seen)")
+    }
+
+    fn mark_message_unread(
+        &mut self,
+        id: u32,
+    ) -> imap::error::Result<imap::types::ZeroCopy<Vec<imap::types::Fetch>>> {
+        self.session.uid_store(format!("{}", id), "-flags (\\Seen)")
+    }
+
+    fn mark_message_deleted(
+        &mut self,
+        id: u32,
+    ) -> imap::error::Result<imap::types::ZeroCopy<Vec<imap::types::Fetch>>> {
+        self.session
+            .uid_store(format!("{}", id), "+FLAGS (\\Deleted)")
+    }
+
+    fn get_message_body(&mut self, id: u32) -> Option<Vec<u8>> {
+        let messages = match self.session.uid_fetch(format!("{}", id), "RFC822") {
+            Ok(messages) => messages,
+            Err(_) => return None,
+        };
+
+        let message = match messages.iter().next() {
+            Some(message) => message,
+            None => return None,
+        };
+
+        let body: Vec<u8> = message.body().unwrap().iter().cloned().collect::<Vec<u8>>();
+        Some(body)
+    }
+
+    fn expunge(&mut self) -> imap::error::Result<Vec<imap::types::Uid>> {
+        self.session.expunge()
+    }
+
+    fn logout(&mut self) -> imap::error::Result<()> {
+        self.session.logout()
     }
 }

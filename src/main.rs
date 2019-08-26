@@ -6,13 +6,11 @@ extern crate serde;
 extern crate threadpool;
 
 mod configuration;
-mod imap_client;
-mod imap_session;
 mod processor;
 
 use clap::{App, Arg, SubCommand};
 use configuration::Configuration;
-use processor::process_emails;
+use processor::Processor;
 
 fn main() {
     let matches = App::new("ActionMailbox::IMAP")
@@ -34,27 +32,64 @@ fn main() {
         )
         .get_matches();
 
-    let config_file = matches
-        .value_of("config")
-        .unwrap_or("config/actionmailbox_imap.yaml");
-
-    let config = match Configuration::new(config_file) {
-        Ok(config) => config,
-        Err(error) => {
-            println!("Failed to build configuration.");
-            println!("Error: {}", error);
-            std::process::exit(64)
-        }
-    };
-
-    if config.tls() == &false {
-        println!("TLS is required. Please use with a server that supports it.");
-        std::process::exit(64);
-    }
-
     if let Some(_) = matches.subcommand_matches("run") {
-        process_emails(config);
+        let config_file = matches
+            .value_of("config")
+            .unwrap_or("config/actionmailbox_imap.yaml");
+
+        let mut config = match Configuration::new(config_file) {
+            Ok(config) => config,
+            Err(error) => {
+                println!("Failed to build configuration.");
+                println!("Error: {}", error);
+                std::process::exit(64)
+            }
+        };
+
+        config.set_environment_variables();
+
+        if config.tls() == &false {
+            println!("TLS is required. Please use with a server that supports it.");
+            std::process::exit(64);
+        }
+
+        run(config)
     }
 
     println!("No command given. please run `actionmailbox-imap help` for help.");
+}
+
+fn run(config: Configuration) {
+    let tls = match native_tls::TlsConnector::builder().build() {
+        Ok(tls) => tls,
+        Err(error) => {
+            println!("Failed to create TLS Stream.");
+            println!("Error: {}", error);
+            std::process::exit(126);
+        }
+    };
+
+    let client = match imap::connect(
+        format!("{}:{}", config.server(), config.port()),
+        &config.server()[..],
+        &tls,
+    ) {
+        Ok(client) => client,
+        Err(error) => {
+            println!("Failed to create IMAP client and connect to server.");
+            println!("Error: {}", error);
+            std::process::exit(126);
+        }
+    };
+
+    let mut session = match client.login(config.username(), config.password()) {
+        Ok(session) => session,
+        Err((error, _)) => {
+            println!("Failed logging into the IMAP server. ");
+            println!("Error: {}", error);
+            std::process::exit(126);
+        }
+    };
+
+    Processor::new(config, &mut session).process();
 }
