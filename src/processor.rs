@@ -65,13 +65,19 @@ impl<'s> Processor<'s> {
         })
         .expect("Error listening for SIGINT.");
 
+        // This is the main loop.
+        // Previously a connection to the server has been made, and
+        // next the server will wait for new activity and then grab
+        // messages to be processed.
         'idle: loop {
             let pool = ThreadPool::new(self.config.workers());
             let (tx, rx) = channel();
 
-            while running.load(Ordering::SeqCst) {
-                let mut messages = self.wait_for_messages();
+            let mut messages = self.wait_for_messages();
 
+            // only process messages after activity
+            while running.load(Ordering::SeqCst) {
+                // process each message that was seleted previously
                 for id in messages.drain() {
                     println!("UID {} :: Passing message to ingress.", id);
                     let job = tx.clone();
@@ -97,6 +103,7 @@ impl<'s> Processor<'s> {
 
                     let ingress_password = self.config.ingress_password().unwrap();
 
+                    // spin up a new thread to send the message to the ingress
                     pool.execute(move || {
                         match pass_to_ingress(body, &url[..], &ingress_password[..]) {
                             Ok(output) => {
@@ -145,6 +152,7 @@ impl<'s> Processor<'s> {
                     });
                 }
 
+                // while there are still jobs processing listen to handle the results
                 while pool.active_count() > 0 && pool.queued_count() > 0 {
                     match rx.try_recv() {
                         Ok(result) => match result {
@@ -158,8 +166,11 @@ impl<'s> Processor<'s> {
                     }
                 }
 
+                // drop the original transmittor in order
+                // to prevent the next loop from waiting for it to send
                 std::mem::drop(tx);
 
+                // continue getting results from threads untill all transmittors are dropped
                 while let Ok(result) = rx.recv() {
                     match result {
                         Ok(id) => {
@@ -170,6 +181,7 @@ impl<'s> Processor<'s> {
                     }
                 }
 
+                // delete all messsages permamently
                 match self.expunge() {
                     Err(error) => {
                         println!("Failed to expunge deleted messages.");
@@ -178,9 +190,11 @@ impl<'s> Processor<'s> {
                     _ => (),
                 }
 
+                // restart loop, to listen for new activity
                 continue 'idle;
             }
 
+            // received SIGINT
             self.logout().expect("Failed to logout.");
             println!("Recived SIGINT, exiting...");
             std::process::exit(0);
