@@ -26,6 +26,3 @@ workers: 4
 # messages. This way the client should grab more than
 # just the first message to to trigger activity.
 wait: 800
-
-url: 
-ingress_password:
