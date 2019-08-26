@@ -69,17 +69,17 @@ impl<'s> Processor<'s> {
             let pool = ThreadPool::new(self.config.workers());
             let (tx, rx) = channel();
 
-            let mut messages = self.wait_for_messages();
-
             while running.load(Ordering::SeqCst) {
+                let mut messages = self.wait_for_messages();
+
                 for id in messages.drain() {
-                    println!("Passing message to ingress: Uid {}", id);
+                    println!("UID {} :: Passing message to ingress.", id);
                     let job = tx.clone();
 
                     match self.mark_message_read(id) {
                         Err(error) => {
-                            println!("Failed to mark message as Seen: Uid {}", id);
-                            println!("Error: {}", error);
+                            println!("UID {} :: Failed to mark message as read.", id);
+                            println!("UID {} :: Error: {}", id, error);
                         }
                         _ => (),
                     }
@@ -87,7 +87,7 @@ impl<'s> Processor<'s> {
                     let body = match self.get_message_body(id) {
                         Some(body) => body,
                         None => {
-                            println!("Failed to read body or empty body: Uid {}", id);
+                            println!("UID {} :: Failed to read body or empty body.", id);
                             self.mark_message_for_retry(id);
                             continue;
                         }
@@ -106,15 +106,15 @@ impl<'s> Processor<'s> {
                                 };
 
                                 println!(
-                                    "Uid {} :: Response from ingress command: {}",
+                                    "UID {} :: Response from ingress command: {}",
                                     id, response
                                 );
 
                                 if output.status.success() {
                                     match job.send(Ok(id)) {
                                         Err(error) => {
-                                            println!("Uid {} :: Failed to send result", id);
-                                            println!("Uid {} :: Error: {}", id, error);
+                                            println!("UID {} :: Failed to send result", id);
+                                            println!("UID {} :: Error: {}", id, error);
                                         }
                                         _ => (),
                                     }
@@ -123,20 +123,20 @@ impl<'s> Processor<'s> {
 
                                 match job.send(Err(id)) {
                                     Err(error) => {
-                                        println!("Uid {} :: Failed to send result", id);
-                                        println!("Uid {} :: Error: {}", id, error);
+                                        println!("UID {} :: Failed to send result", id);
+                                        println!("UID {} :: Error: {}", id, error);
                                     }
                                     _ => (),
                                 }
                             }
                             Err(error) => {
-                                println!("Uid {} :: Failed to pass to ingress.", id);
-                                println!("Uid {} :: Error: {}", id, error);
+                                println!("UID {} :: Failed to pass to ingress.", id);
+                                println!("UID {} :: Error: {}", id, error);
 
                                 match job.send(Err(id)) {
                                     Err(error) => {
-                                        println!("Uid {} :: Failed send command", id);
-                                        println!("Uid {} :: Error: {}", id, error);
+                                        println!("UID {} :: Failed send command", id);
+                                        println!("UID {} :: Error: {}", id, error);
                                     }
                                     _ => (),
                                 }
@@ -149,7 +149,7 @@ impl<'s> Processor<'s> {
                     match rx.try_recv() {
                         Ok(result) => match result {
                             Ok(id) => {
-                                println!("Message successfully passed to ingress. Uid {}", id);
+                                println!("UID {} :: Message successfully passed to ingress.", id);
                                 self.mark_message_as_success(id);
                             }
                             Err(id) => self.mark_message_as_failed(id),
@@ -163,7 +163,7 @@ impl<'s> Processor<'s> {
                 while let Ok(result) = rx.recv() {
                     match result {
                         Ok(id) => {
-                            println!("Message successfully passed to ingress. Uid {}", id);
+                            println!("UID {} :: Message successfully passed to ingress. ", id);
                             self.mark_message_as_success(id);
                         }
                         Err(id) => self.mark_message_as_failed(id),
@@ -231,8 +231,8 @@ impl<'s> Processor<'s> {
     fn mark_message_for_retry(&mut self, id: u32) {
         match self.mark_message_unread(id) {
             Err(error) => {
-                println!("UID {}, Error marking message unread.", id);
-                println!("UID {}, Error: {}", id, error);
+                println!("UID {} :: Error marking message unread.", id);
+                println!("UID {} :: Error: {}", id, error);
             }
             _ => (),
         };
@@ -241,8 +241,8 @@ impl<'s> Processor<'s> {
     fn mark_message_as_failed(&mut self, id: u32) {
         match self.mark_message_flagged(id) {
             Err(error) => {
-                println!("UID {}, Error marking message flagged.", id);
-                println!("UID {}, Error: {}", id, error);
+                println!("UID {} :: Error marking message flagged.", id);
+                println!("UID {} :: Error: {}", id, error);
             }
             _ => (),
         }
@@ -251,8 +251,8 @@ impl<'s> Processor<'s> {
     fn mark_message_as_success(&mut self, id: u32) {
         match self.mark_message_deleted(id) {
             Err(error) => {
-                println!("UID {}, Error marking message unread.", id);
-                println!("UID {}, Error: {}", id, error);
+                println!("UID {} :: Error marking message unread.", id);
+                println!("UID {} :: Error: {}", id, error);
             }
             _ => (),
         };

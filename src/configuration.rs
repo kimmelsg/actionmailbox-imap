@@ -80,10 +80,10 @@ impl Configuration {
     }
 
     pub fn url(&mut self) -> Option<String> {
-        self.url.take()
+        self.url.clone()
     }
 
     pub fn ingress_password(&mut self) -> Option<String> {
-        self.ingress_password.take()
+        self.ingress_password.clone()
     }
 }
