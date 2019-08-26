@@ -72,7 +72,7 @@ pub fn process_emails(config: Configuration) {
     let r = running.clone();
 
     ctrlc::set_handler(move || {
-        r.store(false, Ordering::UidCst);
+        r.store(false, Ordering::SeqCst);
     })
     .expect("Error listening for SIGINT.");
 
@@ -200,7 +200,7 @@ pub fn process_emails(config: Configuration) {
             );
         }
 
-        while running.load(Ordering::UidCst) {
+        while running.load(Ordering::SeqCst) {
             while pool.active_count() > 0 && pool.queued_count() > 0 {
                 match rx.try_recv() {
                     Ok(result) => match result {
