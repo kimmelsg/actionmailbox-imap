@@ -13,6 +13,7 @@ pub struct Configuration {
     wait: u64,
     url: Option<String>,
     ingress_password: Option<String>,
+    bundle_command: Option<String>,
 }
 
 impl Configuration {
@@ -41,6 +42,17 @@ impl Configuration {
                     Ok(ingress_password) => ingress_password,
                     _ => {
                         println!("Environment (INGRESS_PASSWORD) or config (ingress_password) variable is required.");
+                        std::process::exit(64);
+                    }
+                });
+        }
+
+        if self.bundle_command.is_none() {
+            self.bundle_command
+                .replace(match std::env::var("BUNDLE_COMMAND") {
+                    Ok(bundle_command) => bundle_command,
+                    _ => {
+                        println!("Environment (BUNDLE_COMMAND) or config (bundle_command) variable is required.");
                         std::process::exit(64);
                     }
                 });
@@ -85,5 +97,9 @@ impl Configuration {
 
     pub fn ingress_password(&mut self) -> Option<String> {
         self.ingress_password.clone()
+    }
+
+    pub fn bundle_command(&mut self) -> Option<String> {
+        self.bundle_command.clone()
     }
 }
