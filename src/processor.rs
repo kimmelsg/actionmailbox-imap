@@ -13,8 +13,9 @@ fn pass_to_ingress(
     body: Vec<u8>,
     url: &str,
     password: &str,
+    command: &str,
 ) -> std::io::Result<std::process::Output> {
-    let mut child = Command::new("bundle")
+    let mut child = Command::new(command)
         .env("URL", url)
         .env("INGRESS_PASSWORD", password)
         .args(&["exec", "rails", "action_mailbox:ingress:imap"])
@@ -103,9 +104,16 @@ impl<'s> Processor<'s> {
 
                     let ingress_password = self.config.ingress_password().unwrap();
 
+                    let bundle_command = self.config.bundle_command().unwrap();
+
                     // spin up a new thread to send the message to the ingress
                     pool.execute(move || {
-                        match pass_to_ingress(body, &url[..], &ingress_password[..]) {
+                        match pass_to_ingress(
+                            body,
+                            &url[..],
+                            &ingress_password[..],
+                            &bundle_command[..],
+                        ) {
                             Ok(output) => {
                                 let response = match String::from_utf8(output.stdout) {
                                     Ok(response) => response,
