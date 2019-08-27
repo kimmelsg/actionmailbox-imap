@@ -1,11 +1,11 @@
-server: "***REMOVED***"
+server: "outlook.office365.com"
 
 # Currently TLS is required
 port: 993
 tls: true
 
 username: "walter2@kimmel.com"
-password: "***REMOVED***"
+password: "Kimmel trench capon2"
 
 # The mailbox to select unread messages from
 mailbox: "RETRY"

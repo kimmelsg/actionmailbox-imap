@@ -8,7 +8,7 @@ Three things happen when you setup `ActionMailbox::IMAP`.
 
 This rust client is started which will then connect to the IMAP server, login, select a mailbox, and send the IDLE command. This will then block and listen for any new activity on the mailbox.
 
-Once a message is fetched from the server, the client will then pass a message to the ingress by issuing `bundle exec rails action_mailbox:ingress:imap`. When it calls this command it will forward the environment variables `URL` and `INGRESS_PASSWORD` to this command along with the body of the email message.
+Once a message is fetched from the server, the client will then pass a message to the ingress by issuing `bundle exec rails action_mailbox:ingress:imap`. When it calls this command it will forward the environment variables `URL`, `INGRESS_PASSWORD`, `RUBY`, `BUNDLE` to this command along with the body of the email message.
 
 The ingress command will then relay the message to ActionMailbox via HTTP(S) as like the other ActionMailbox ingress options.
 
