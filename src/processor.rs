@@ -11,14 +11,17 @@ use std::sync::Arc;
 
 fn pass_to_ingress(
     body: Vec<u8>,
-    url: &str,
-    password: &str,
-    command: &str,
+    mut config: Configuration,
 ) -> std::io::Result<std::process::Output> {
-    let mut child = Command::new(command)
-        .env("URL", url)
-        .env("INGRESS_PASSWORD", password)
-        .args(&["exec", "rails", "action_mailbox:ingress:imap"])
+    let mut child = Command::new(config.ruby())
+        .env("URL", config.url())
+        .env("INGRESS_PASSWORD", config.ingress_password())
+        .args(&[
+            &config.bundle()[..],
+            "exec",
+            "rails",
+            "action_mailbox:ingress:imap",
+        ])
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .spawn()?;
@@ -100,61 +103,47 @@ impl<'s> Processor<'s> {
                         }
                     };
 
-                    let url = self.config.url().unwrap();
-
-                    let ingress_password = self.config.ingress_password().unwrap();
-
-                    let bundle_command = self.config.bundle_command().unwrap();
+                    let config = self.config.clone();
 
                     // spin up a new thread to send the message to the ingress
-                    pool.execute(move || {
-                        match pass_to_ingress(
-                            body,
-                            &url[..],
-                            &ingress_password[..],
-                            &bundle_command[..],
-                        ) {
-                            Ok(output) => {
-                                let response = match String::from_utf8(output.stdout) {
-                                    Ok(response) => response,
-                                    Err(_) => String::from("Error reading STDOUT"),
-                                };
+                    pool.execute(move || match pass_to_ingress(body, config) {
+                        Ok(output) => {
+                            let response = match String::from_utf8(output.stdout) {
+                                Ok(response) => response,
+                                Err(_) => String::from("Error reading STDOUT"),
+                            };
 
-                                println!(
-                                    "UID {} :: Response from ingress command: {}",
-                                    id, response
-                                );
+                            println!("UID {} :: Response from ingress command: {}", id, response);
 
-                                if output.status.success() {
-                                    match job.send(Ok(id)) {
-                                        Err(error) => {
-                                            println!("UID {} :: Failed to send result", id);
-                                            println!("UID {} :: Error: {}", id, error);
-                                        }
-                                        _ => (),
-                                    }
-                                    return;
-                                }
-
-                                match job.send(Err(id)) {
+                            if output.status.success() {
+                                match job.send(Ok(id)) {
                                     Err(error) => {
                                         println!("UID {} :: Failed to send result", id);
                                         println!("UID {} :: Error: {}", id, error);
                                     }
                                     _ => (),
                                 }
+                                return;
                             }
-                            Err(error) => {
-                                println!("UID {} :: Failed to pass to ingress.", id);
-                                println!("UID {} :: Error: {}", id, error);
 
-                                match job.send(Err(id)) {
-                                    Err(error) => {
-                                        println!("UID {} :: Failed send command", id);
-                                        println!("UID {} :: Error: {}", id, error);
-                                    }
-                                    _ => (),
+                            match job.send(Err(id)) {
+                                Err(error) => {
+                                    println!("UID {} :: Failed to send result", id);
+                                    println!("UID {} :: Error: {}", id, error);
                                 }
+                                _ => (),
+                            }
+                        }
+                        Err(error) => {
+                            println!("UID {} :: Failed to pass to ingress.", id);
+                            println!("UID {} :: Error: {}", id, error);
+
+                            match job.send(Err(id)) {
+                                Err(error) => {
+                                    println!("UID {} :: Failed send command", id);
+                                    println!("UID {} :: Error: {}", id, error);
+                                }
+                                _ => (),
                             }
                         }
                     });

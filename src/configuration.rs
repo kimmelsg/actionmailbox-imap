@@ -1,7 +1,7 @@
 use config::{Config, ConfigError, File};
 use serde::Deserialize;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct Configuration {
     server: String,
     port: i64,
@@ -13,7 +13,8 @@ pub struct Configuration {
     wait: u64,
     url: Option<String>,
     ingress_password: Option<String>,
-    bundle_command: Option<String>,
+    ruby: Option<String>,
+    bundle: Option<String>,
 }
 
 impl Configuration {
@@ -47,15 +48,24 @@ impl Configuration {
                 });
         }
 
-        if self.bundle_command.is_none() {
-            self.bundle_command
-                .replace(match std::env::var("BUNDLE_COMMAND") {
-                    Ok(bundle_command) => bundle_command,
-                    _ => {
-                        println!("Environment (BUNDLE_COMMAND) or config (bundle_command) variable is required.");
-                        std::process::exit(64);
-                    }
-                });
+        if self.ruby.is_none() {
+            self.ruby.replace(match std::env::var("RUBY") {
+                Ok(ruby) => ruby,
+                _ => {
+                    println!("Environment (RUBY) or config (ruby) variable is required.");
+                    std::process::exit(64);
+                }
+            });
+        }
+
+        if self.bundle.is_none() {
+            self.bundle.replace(match std::env::var("BUNDLE") {
+                Ok(bundle) => bundle,
+                _ => {
+                    println!("Environment (BUNDLE) or config (bundle) variable is required.");
+                    std::process::exit(64);
+                }
+            });
         }
     }
 
@@ -91,15 +101,43 @@ impl Configuration {
         self.wait
     }
 
-    pub fn url(&mut self) -> Option<String> {
-        self.url.clone()
+    pub fn url(&mut self) -> String {
+        match self.url.take() {
+            Some(url) => url,
+            None => {
+                println!("Failed getting URL.");
+                std::process::exit(126);
+            }
+        }
     }
 
-    pub fn ingress_password(&mut self) -> Option<String> {
-        self.ingress_password.clone()
+    pub fn ingress_password(&mut self) -> String {
+        match self.ingress_password.take() {
+            Some(ingress_password) => ingress_password,
+            None => {
+                println!("Failed getting INGRESS_PASSWORD.");
+                std::process::exit(126);
+            }
+        }
     }
 
-    pub fn bundle_command(&mut self) -> Option<String> {
-        self.bundle_command.clone()
+    pub fn ruby(&mut self) -> String {
+        match self.ruby.take() {
+            Some(ruby) => ruby,
+            None => {
+                println!("Failed getting RUBY.");
+                std::process::exit(126);
+            }
+        }
+    }
+
+    pub fn bundle(&mut self) -> String {
+        match self.bundle.take() {
+            Some(bundle) => bundle,
+            None => {
+                println!("Failed getting BUNDLE.");
+                std::process::exit(126);
+            }
+        }
     }
 }
