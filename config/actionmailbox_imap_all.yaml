@@ -1,0 +1,48 @@
+server: ""
+
+# Currently TLS is required
+port: 993
+tls: true
+
+username: ""
+password: ""
+
+# The mailbox to select unread messages from
+mailbox: ""
+
+#
+# Workers
+#
+# This is the number of threads used to process
+# all unread messages from the IMAP server.
+#
+# DO NOT use more workers than you have threads available.
+workers: 4
+
+# Wait (in ms)
+#
+# Once a server sends the ANY back from waiting
+# for activity, you can wait some time before grabbing
+# messages. This way the client should grab more than
+# just the first message to to trigger activity.
+wait: 800
+
+# Ingress URL
+# URL to rails actionmailbox relay inbound_emails
+# Comment out in order to use URL environment variable.
+url: ''
+
+# Ingress Password
+# Ingress password set in your rails credentials.
+# Comment out in order to use INGRESS_PASSWORD environment variable.
+ingress_password: ''
+
+# Ruby
+# Path to ruby command.
+# Comment out in order to use RUBY environment variable.
+ruby: ruby
+
+# Bundle
+# Path to bundle command.
+# Comment out in order to use BUNDLE environment variable.
+bundle: bundle

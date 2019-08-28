@@ -141,3 +141,41 @@ impl Configuration {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_it_can_parse_all_configuration_file() {
+        let result = Configuration::new("config/actionmailbox_imap_all.yml");
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_it_can_parse_minimum_configuration_file() {
+        let result = Configuration::new("config/actionmailbox_imap_minimum.yml");
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_it_will_use_environment_variables() {
+        std::env::set_var("URL", "http://localhost:3000");
+        std::env::set_var("INGRESS_PASSWORD", "ingresspassword");
+        std::env::set_var("RUBY", "ruby");
+        std::env::set_var("BUNDLE", "bundle");
+
+        let result = Configuration::new("config/actionmailbox_imap_minimum.yml");
+
+        assert!(result.is_ok());
+
+        let mut config = result.unwrap();
+
+        config.set_environment_variables();
+
+        assert_eq!(config.url(), String::from("http://localhost:3000"));
+        assert_eq!(config.ingress_password(), String::from("ingresspassword"));
+        assert_eq!(config.ruby(), String::from("ruby"));
+        assert_eq!(config.bundle(), String::from("bundle"));
+    }
+}
