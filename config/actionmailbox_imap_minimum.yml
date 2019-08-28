@@ -1,14 +1,14 @@
-server: "outlook.office365.com"
+# Server
+# The imap server to connect to.
+server: ""
 
 # Currently TLS is required
 port: 993
 tls: true
 
-username: "walter2@kimmel.com"
-password: "Kimmel trench capon2"
-
+# Mailbox
 # The mailbox to select unread messages from
-mailbox: "RETRY"
+mailbox: ""
 
 #
 # Workers
