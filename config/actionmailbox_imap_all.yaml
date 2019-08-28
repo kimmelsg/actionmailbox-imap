@@ -1,12 +1,20 @@
+# Server
+# The imap server to connect to.
 server: ""
 
 # Currently TLS is required
 port: 993
 tls: true
 
+# Username
+# Comment out in order to use URL environment variable.
 username: ""
+
+# Password
+# Comment out in order to use URL environment variable.
 password: ""
 
+# Mailbox
 # The mailbox to select unread messages from
 mailbox: ""
 

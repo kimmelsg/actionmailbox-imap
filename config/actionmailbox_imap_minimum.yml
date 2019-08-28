@@ -1,12 +1,12 @@
+# Server
+# The imap server to connect to.
 server: ""
 
 # Currently TLS is required
 port: 993
 tls: true
 
-username: ""
-password: ""
-
+# Mailbox
 # The mailbox to select unread messages from
 mailbox: ""
 
