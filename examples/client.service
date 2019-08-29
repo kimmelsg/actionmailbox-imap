@@ -1,0 +1,20 @@
+[Unit]
+Description=ActionMailbox::IMAP
+After=network.target
+
+[Service]
+Type=simple
+User=deploy
+WorkingDirectory=/server/current
+Environment="URL=http://localhost:3000/rails/action_mailbox/relay/inbound_emails"
+Environment="INGRESS_PASSWORD=ingresspw"
+Environment="RUBY=/server/.rbenv/shims/ruby"
+Environment="BUNDLE=/server/current/bin/bundle"
+ExecStart=/server/current/actionmailbox-imap run
+Restart=always
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=actionmailbox-imap
+
+[Install]
+WantedBy=multi-user.target
