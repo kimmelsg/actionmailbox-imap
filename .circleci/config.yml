@@ -75,7 +75,7 @@ jobs:
       - checkout
       - restore_cache:
           key: rust-cache
-      - run: cargo --check
+      - run: cargo test
       - save_cache:
           key: rust-cache
           paths:
