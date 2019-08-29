@@ -22,10 +22,10 @@ defaults: &defaults
   working_directory: ~/actionmailbox-imap
 
 rust: &rust
-  docker: &rustimg
+  docker: *rustimg
 
 ruby: &ruby
-  docker: &rubyimg
+  docker: *rubyimg
 
 jobs:
   ruby_build:
@@ -81,7 +81,6 @@ jobs:
           paths:
             - "~/.cargo"
             - "./target"
-
 
 workflows:
   version: 2
