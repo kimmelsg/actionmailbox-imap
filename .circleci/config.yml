@@ -24,7 +24,7 @@ defaults: &defaults
 jobs:
   ruby_build:
     <<: *defaults
-    docker: &ruby
+    <<: *ruby
     steps:
       - checkout
 
