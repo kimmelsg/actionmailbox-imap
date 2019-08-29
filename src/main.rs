@@ -18,12 +18,12 @@ fn main() {
         .author("Ethan Knowlton <eknowlton@gmail.com>")
         .about("IMAP client for ActionMailbox::IMAP")
         .arg(
-            Arg::with_name("config")
-                .short("c")
-                .long("config")
-                .value_name("FILE")
-                .help("Sets a custom config file")
-                .takes_value(true),
+    Arg::with_name("config")
+        .short("c")
+        .long("config")
+        .value_name("FILE")
+        .help("Sets a custom config file")
+        .takes_value(true),
         )
         .subcommand(
             SubCommand::with_name("run")
