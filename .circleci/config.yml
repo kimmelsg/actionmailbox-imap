@@ -84,6 +84,7 @@ jobs:
     <<: *rust
     steps:
       - checkout
+      - run: rustup update && rustup component add clippy
       - save_cache: *save-rust-cache
 
   rust_test:
