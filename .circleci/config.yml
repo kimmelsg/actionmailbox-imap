@@ -39,7 +39,7 @@ jobs:
 
   ruby_test:
     <<: *defaults
-    docker: &ruby
+    <<: *ruby
     steps:
       - checkout
       - restore_cache: *restore-cache
@@ -52,7 +52,7 @@ jobs:
 
   ruby_lint:
     <<: *defaults
-    docker: &ruby
+    <<: *ruby
     steps:
       - checkout
       - restore_cache: *restore-cache
@@ -64,7 +64,7 @@ jobs:
 
   rust:
     <<: *defaults
-    docker: &rust
+    <<: *rust
     steps:
       - checkout
       - restore_cache:
