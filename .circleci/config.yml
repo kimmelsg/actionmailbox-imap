@@ -1,8 +1,11 @@
 version: 2
 
 aliases:
-  - &docker
+  - &ruby
     - image: circleci/ruby:2.6.3
+
+  - &rust
+    - image: circleci/rust:latest
 
   - &restore-cache
     keys:
@@ -17,11 +20,11 @@ aliases:
 
 defaults: &defaults
   working_directory: ~/actionmailbox-imap
-  docker: *docker
 
 jobs:
-  build:
+  ruby_build:
     <<: *defaults
+    docker: &ruby
     steps:
       - checkout
 
@@ -34,8 +37,9 @@ jobs:
             bundle install --jobs=4 --retry=3 --path vendor/bundle
       - save_cache: *save-cache
 
-  test:
+  ruby_test:
     <<: *defaults
+    docker: &ruby
     steps:
       - checkout
       - restore_cache: *restore-cache
@@ -46,8 +50,9 @@ jobs:
       # Run the tests
       - run: CI=true ./bin/test
 
-  lint:
+  ruby_lint:
     <<: *defaults
+    docker: &ruby
     steps:
       - checkout
       - restore_cache: *restore-cache
@@ -57,14 +62,30 @@ jobs:
 
       - run: bundle exec standardrb STANDARDOPTS="--format progress"
 
+  rust:
+    <<: *defaults
+    docker: rust
+    steps:
+      - checkout
+      - restore_cache:
+          key: rust-cache
+      - run: cargo --check
+      - save_cache:
+          key: rust-cache
+          paths:
+            - "~/.cargo"
+            - "./target"
+
+
 workflows:
   version: 2
   build_test_lint:
     jobs:
-      - build
-      - test:
+      - ruby_build
+      - ruby_test:
           requires:
-            - build
-      - lint:
+            - ruby_build
+      - ruby_lint:
           requires:
-            - build
+            - ruby_build
+      - rust
