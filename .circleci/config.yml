@@ -84,7 +84,6 @@ jobs:
     <<: *rust
     steps:
       - checkout
-      - run: rustup update && rustup component add clippy
       - save_cache: *save-rust-cache
 
   rust_test:
@@ -101,7 +100,8 @@ jobs:
     steps:
       - checkout
       - restore_cache: *restore-rust-cache
-      - run: cargo clippy
+      - run: rustfmt
+      - run: cargo fmt -- --write-mode=diff
 
 workflows:
   version: 2
