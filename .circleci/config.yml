@@ -7,16 +7,27 @@ aliases:
   - &rustimg
     - image: circleci/rust:latest
 
-  - &restore-cache
+  - &restore-ruby-cache
     keys:
-      - actionmailbox-imap-{{ checksum "Gemfile.lock" }}
+      - actionmailbox-imap-ruby-{{ checksum "Gemfile.lock" }}
       # fallback to using the latest cache if no exact match is found
-      - actionmailbox-imap-
+      - actionmailbox-imap-ruby-
 
-  - &save-cache
+  - &save-ruby-cache
     paths:
       - ./vendor/bundle
-    key: actionmailbox-imap-{{ checksum "Gemfile.lock" }}
+    key: actionmailbox-imap-ruby-{{ checksum "Gemfile.lock" }}
+
+  - &save-rust-cache
+    paths:
+      - "~/.cargo"
+      - "./target"
+    key: actionmailbox-imap-rust-{{ checksum "Cargo.lock" }}
+
+  - &restore-rust-cache
+    keys:
+      - actionmailbox-imap-rust-{{ checksum "Cargo.lock" }}
+      - actionmailbox-imap-rust-
 
 defaults: &defaults
   working_directory: ~/actionmailbox-imap
@@ -35,20 +46,20 @@ jobs:
       - checkout
 
       # Download and cache dependencies
-      - restore_cache: *restore-cache
+      - restore_cache: *restore-ruby-cache
 
       - run:
           name: install dependencies
           command: |
             bundle install --jobs=4 --retry=3 --path vendor/bundle
-      - save_cache: *save-cache
+      - save_cache: *save-ruby-cache
 
   ruby_test:
     <<: *defaults
     <<: *ruby
     steps:
       - checkout
-      - restore_cache: *restore-cache
+      - restore_cache: *restore-ruby-cache
 
       # Set bundle path to point to cache
       - run: bundle config --local path vendor/bundle
@@ -61,26 +72,35 @@ jobs:
     <<: *ruby
     steps:
       - checkout
-      - restore_cache: *restore-cache
+      - restore_cache: *restore-ruby-cache
 
       # Set bundle path to point to cache
       - run: bundle config --local path vendor/bundle
 
       - run: bundle exec standardrb STANDARDOPTS="--format progress"
 
-  rust:
+  rust_build:
     <<: *defaults
     <<: *rust
     steps:
       - checkout
-      - restore_cache:
-          key: rust-cache
+      - save_cache: *save-rust-cache
+
+  rust_test:
+    <<: *defaults
+    <<: *rust
+    steps:
+      - checkout
+      - restore_cache: *restore-rust-cache
       - run: cargo test
-      - save_cache:
-          key: rust-cache
-          paths:
-            - "~/.cargo"
-            - "./target"
+
+  rust_lint:
+    <<: *defaults
+    <<: *rust
+    steps:
+      - checkout
+      - restore_cache: *restore-rust-cache
+      - run: cargo clippy
 
 workflows:
   version: 2
@@ -93,4 +113,10 @@ workflows:
       - ruby_lint:
           requires:
             - ruby_build
-      - rust
+      - rust_build
+      - rust_test:
+          requires:
+            - rust_build
+      - rust_lint:
+          requires:
+            - rust_build
