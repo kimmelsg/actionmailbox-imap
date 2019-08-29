@@ -1,10 +1,10 @@
 version: 2
 
 aliases:
-  - &ruby
+  - &rubyimg
     - image: circleci/ruby:2.6.3
 
-  - &rust
+  - &rustimg
     - image: circleci/rust:latest
 
   - &restore-cache
@@ -20,6 +20,12 @@ aliases:
 
 defaults: &defaults
   working_directory: ~/actionmailbox-imap
+
+rust: &rust
+  docker: &rustimg
+
+ruby: &ruby
+  docker: &rubyimg
 
 jobs:
   ruby_build:
