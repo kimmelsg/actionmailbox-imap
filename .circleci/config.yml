@@ -64,7 +64,7 @@ jobs:
 
   rust:
     <<: *defaults
-    docker: rust
+    docker: &rust
     steps:
       - checkout
       - restore_cache:
