@@ -11,7 +11,7 @@ tls: true
 username: ""
 
 # Password
-# Comment out in order to use URL environment variable.
+# Comment out in order to use PASSWORD environment variable.
 password: ""
 
 # Mailbox
