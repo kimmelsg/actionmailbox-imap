@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.version = Actionmailbox::Imap::VERSION
   spec.authors = ["Ethan Knowlton"]
   spec.email = ["eknowlton@gmail.com"]
-  spec.homepage = "https://github.com/kimmelsg"
+  spec.homepage = "https://github.com/kimmelsg/actionmailbox-imap"
   spec.summary = "Relay IMAP messages to ActionMailbox"
   spec.description = "Relay IMAP messages to ActionMailbox. This package requires the rust imap client binary to be run. Visit the repository ReadMe for more information."
   spec.license = "MIT"

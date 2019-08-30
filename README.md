@@ -51,7 +51,7 @@ $ rails g imap:install
 
 Prepare your IMAP server and account by ensuring/creating the mailboxes for `ingress_mailbox`, ex: "INBOX".
 
-Update the `config/imap.yml` that was generated to include server and credentials information, `mailbox`. Currently SSL is required.
+Update the `config/actionmailbox_imap.yml` that was generated to include server and credentials information, `mailbox`. Currently SSL is required.
 
 Run the [ActionMailbox::IMAP Client](https://github.com/kimmelsg/actionmailbox-imap/blob/master/CLIENT.md) like so `URL=... INGRESS_PASSWORD=... RUBY=ruby BUNDLE=bundle ./actionmailbox-imap` from within rails root to begin processing emails.
 
