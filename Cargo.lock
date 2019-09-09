@@ -2,7 +2,7 @@
 # It is not intended for manual editing.
 [[package]]
 name = "actionmailbox-imap"
-version = "0.2.4"
+version = "0.2.5"
 dependencies = [
  "clap 2.33.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "config 0.9.3 (registry+https://github.com/rust-lang/crates.io-index)",
